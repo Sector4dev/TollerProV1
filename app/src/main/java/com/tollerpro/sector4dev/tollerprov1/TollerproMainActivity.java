@@ -23,9 +23,9 @@ public class TollerproMainActivity extends AppCompatActivity implements Compound
     @Override
     public void onCheckedChanged(CompoundButton compund, boolean isChecked) {
         if (isChecked){
-            Toast.makeText(this,"enabled",Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this,"enabled",Toast.LENGTH_SHORT).show();
         }else{
-            Toast.makeText(this,"disabled",Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this,"disabled",Toast.LENGTH_SHORT).show();
         }
     }
 }
