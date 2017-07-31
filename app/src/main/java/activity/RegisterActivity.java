@@ -132,7 +132,7 @@ public class RegisterActivity extends Activity {
                         String uid = jObj.getString("uid");
 
                         JSONObject user = jObj.getJSONObject("user");
-                        String name = user.getString("name");
+                        String name = user.getString("username");
                         String email = user.getString("email");
                         String created_at = user
                                 .getString("created_at");
@@ -176,7 +176,7 @@ public class RegisterActivity extends Activity {
             protected Map<String, String> getParams() {
                 // Posting params to register url
                 Map<String, String> params = new HashMap<String, String>();
-                params.put("name", name);
+                params.put("username", name);
                 params.put("email", email);
                 params.put("password", password);
 
