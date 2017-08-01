@@ -1,8 +1,11 @@
 package com.tollerpro.sector4dev.tollerprov1;
 
 import android.content.Intent;
+import android.icu.text.SimpleDateFormat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.Spanned;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -54,6 +57,39 @@ public class TollerproMainActivity extends AppCompatActivity implements Compound
 
         toggleamplibttn=(ToggleButton)findViewById(R.id.buttonamplifier);
         toggleamplibttn.setOnCheckedChangeListener(this);
+
+        //Continous Timer Updation
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    while (!isInterrupted()) {
+                        Thread.sleep(1000);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                TextView tdate = (TextView) findViewById(R.id.tollertimer);
+                                long date = System.currentTimeMillis();
+                                //SimpleDateFormat sdf = new SimpleDateFormat("hh:mm:ssa\nMM-dd-yyyy\nE");
+                                SimpleDateFormat sdft = new SimpleDateFormat("hh:mm:ssa");
+                                SimpleDateFormat sdfd = new SimpleDateFormat("MM-dd-yyyy");
+                                SimpleDateFormat sdfdy = new SimpleDateFormat("E");
+                                //String dateString = sdft.format(date);
+                                String dateStringT = sdft.format(date);
+                                String dateStringD = sdfd.format(date);
+                                String dateStringDY = sdfdy.format(date);
+                                String htmlfullDT="<b>"+dateStringT+"</b><br/>"+"<font size='1'>"+dateStringD+"</font><br/>"+dateStringDY;
+                                Spanned strHtml= Html.fromHtml(htmlfullDT,0);
+                                //tdate.setText(dateString);
+                                tdate.setText(strHtml);
+                            }
+                        });
+                    }
+                } catch (InterruptedException e) {
+                }
+            }
+        };
+        t.start();
     }
 
     /**
