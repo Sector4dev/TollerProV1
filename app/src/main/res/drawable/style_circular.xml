@@ -6,7 +6,7 @@
             android:innerRadiusRatio="4"
             android:shape="ring"
             android:useLevel="true"
-            android:thicknessRatio="14.0" >
+            android:thicknessRatio="18.0" >
             <gradient
                 android:centerColor="#80000000"
                 android:endColor="#80000000"
@@ -24,7 +24,7 @@
                 android:innerRadiusRatio="4"
                 android:shape="ring"
                 android:useLevel="true"
-                android:thicknessRatio="14.0" >
+                android:thicknessRatio="18.0" >
                 <rotate
                     android:fromDegrees="0"
                     android:pivotX="50%"
