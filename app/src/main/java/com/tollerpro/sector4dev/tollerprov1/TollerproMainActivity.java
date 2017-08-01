@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.icu.text.SimpleDateFormat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.text.Spanned;
 import android.widget.CompoundButton;
@@ -24,6 +25,10 @@ public class TollerproMainActivity extends AppCompatActivity implements Compound
 
     private SQLiteHandler db;
     private SessionManager session;
+
+    private RecyclerView pRecyclerView;
+    private RecyclerView.LayoutManager pLayoutManager;
+    private RecyclerView.Adapter pAdaper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,12 +78,12 @@ public class TollerproMainActivity extends AppCompatActivity implements Compound
                                 //SimpleDateFormat sdf = new SimpleDateFormat("hh:mm:ssa\nMM-dd-yyyy\nE");
                                 SimpleDateFormat sdft = new SimpleDateFormat("hh:mm:ssa");
                                 SimpleDateFormat sdfd = new SimpleDateFormat("MM-dd-yyyy");
-                                SimpleDateFormat sdfdy = new SimpleDateFormat("E");
+                                SimpleDateFormat sdfdy = new SimpleDateFormat("EEEE");
                                 //String dateString = sdft.format(date);
                                 String dateStringT = sdft.format(date);
                                 String dateStringD = sdfd.format(date);
                                 String dateStringDY = sdfdy.format(date);
-                                String htmlfullDT="<b>"+dateStringT+"</b><br/>"+"<font size='1'>"+dateStringD+"</font><br/>"+dateStringDY;
+                                String htmlfullDT="<b>"+dateStringT+"</b><br/>"+"<small>"+dateStringD+"</small><br/><small>"+dateStringDY+"</small>";
                                 Spanned strHtml= Html.fromHtml(htmlfullDT,0);
                                 //tdate.setText(dateString);
                                 tdate.setText(strHtml);

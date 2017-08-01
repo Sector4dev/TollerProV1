@@ -77,44 +77,61 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Username "
-        app:layout_constraintTop_toTopOf="@+id/tollerheader"
-        app:layout_constraintBottom_toBottomOf="@+id/tollerheader"
-        android:layout_marginRight="8dp"
-        app:layout_constraintRight_toRightOf="@+id/tollerheader"
-        android:layout_marginLeft="8dp"
-        app:layout_constraintLeft_toLeftOf="@+id/tollerheader"
-        app:layout_constraintHorizontal_bias="0.986"
-        app:layout_constraintVertical_bias="0.489"
-        android:layout_marginEnd="12dp"
-        android:layout_below="@+id/tollerheader"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="19dp" />
+        android:textStyle="bold"
+        android:layout_alignTop="@+id/progressshadow"
+        android:layout_toEndOf="@+id/textView"
+        android:layout_marginStart="8dp" />
 
     <TextView
         android:id="@+id/textViewPlace"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Place "
-        android:layout_marginRight="13dp"
-        app:layout_constraintRight_toRightOf="@+id/tollerheader"
-        android:layout_marginLeft="8dp"
-        app:layout_constraintLeft_toLeftOf="@+id/tollerheader"
-        app:layout_constraintTop_toTopOf="@+id/tollerheader"
-        app:layout_constraintBottom_toBottomOf="@+id/tollerheader"
-        app:layout_constraintHorizontal_bias="0.987"
-        app:layout_constraintVertical_bias="1.0"
-        android:layout_marginTop="18dp"
+        android:textSize="10dp"
+        android:layout_below="@+id/textViewUsername"
+        android:layout_alignStart="@+id/textViewUsername" />
+
+    <ImageView
+        android:id="@+id/todaytag"
+        app:srcCompat="@drawable/todaytag"
+        android:layout_width="70dp"
+        android:layout_height="40dp"
         android:layout_alignTop="@+id/textViewUsername"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="26dp" />
+    <TextView
+        android:id="@+id/myImageViewText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/todaytag"
+        android:layout_alignTop="@+id/todaytag"
+        android:layout_alignRight="@+id/todaytag"
+        android:layout_alignBottom="@+id/todaytag"
+        android:gravity="center"
+        android:text="Today"
+        android:textSize="10dp"
+        android:layout_marginBottom="3dp"/>
+
+    <ImageView
+        android:id="@+id/calendartags"
+        app:srcCompat="@drawable/titlecal"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:layout_alignTop="@+id/circletoday"
+        android:layout_alignEnd="@+id/todaytag"
+        android:layout_alignStart="@+id/textViewPlace" />
 
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="TIME"
+        android:textSize="13dp"
+        android:textStyle="bold"
         android:textColor="@color/tollergreen"
         android:layout_below="@+id/tollerheader"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="4dp"/>
 
     <ImageView
         android:id="@+id/progressbase"
@@ -129,10 +146,10 @@
         android:layout_width="250dp"
         android:layout_height="230dp"
         android:indeterminate="false"
-        android:max="60"
-        android:progress="35"
+        android:max="100"
+        android:progress="100"
         android:progressDrawable="@drawable/style_circular"
-        android:secondaryProgress="60"
+        android:secondaryProgress="00"
         android:layout_centerInParent="true"/>
 
     <ImageView
@@ -144,19 +161,70 @@
     <TextView
         android:id="@+id/tollertimer"
         android:layout_width="wrap_content"
+        android:textSize="18dp"
+        android:textAlignment="center"
         android:layout_height="wrap_content"
         android:text="TextView"
         android:layout_centerInParent="true"/>
 
     <Button
         android:id="@+id/button"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:background="@drawable/settings"
-        android:layout_alignBottom="@+id/buttonamplifier"
-        android:layout_alignStart="@+id/textViewPlace" />
+        android:layout_above="@+id/progressBar2"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="11dp" />
 
+    <TextView
+        android:id="@+id/texttoday"
+        android:layout_width="wrap_content"
+        android:textSize="13dp"
+        android:layout_height="wrap_content"
+        android:text="TODAY"
+        android:textColor="@color/tollergreen"
+        android:textStyle="bold"
+        android:layout_below="@+id/tollertimer"
+        android:layout_toStartOf="@+id/progressshadow"
+        android:layout_marginRight="3dp"/>
+    <ImageView
+        android:id="@+id/circletoday"
+        app:srcCompat="@drawable/circletoday"
+        android:layout_width="190dp"
+        android:layout_height="190dp"
+        android:layout_below="@+id/todaytag"
+        android:layout_toEndOf="@+id/buttonmute"
+        android:layout_marginTop="11dp" />
+    <TextView
+        android:id="@+id/daystatus"
+        android:layout_width="wrap_content"
+        android:textSize="9dp"
+        android:textStyle="bold"
+        android:layout_height="wrap_content"
+        android:text="Working Day"
+        android:layout_alignLeft="@+id/circletoday"
+        android:layout_alignTop="@+id/circletoday"
+        android:layout_alignRight="@+id/circletoday"
+        android:layout_alignBottom="@+id/circletoday"
+        android:layout_marginLeft="68dp"
+        android:layout_marginTop="93dp"/>
+    <TextView
+        android:id="@+id/daycondition"
+        android:layout_width="wrap_content"
+        android:textSize="8dp"
+        android:layout_height="wrap_content"
+        android:text="Regular Day"
+        android:layout_alignLeft="@+id/circletoday"
+        android:layout_alignTop="@+id/circletoday"
+        android:layout_alignRight="@+id/circletoday"
+        android:layout_alignBottom="@+id/circletoday"
+        android:layout_marginLeft="71dp"
+        android:layout_marginTop="102dp"/>
 
+   <android.support.v7.widget.RecyclerView
+       android:id="@+id/recyclerviewperiod"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"/>
 
 
 </RelativeLayout>
