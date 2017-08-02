@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.icu.text.SimpleDateFormat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.text.Spanned;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import helper.SQLiteHandler;
@@ -29,6 +31,7 @@ public class TollerproMainActivity extends AppCompatActivity implements Compound
     private RecyclerView pRecyclerView;
     private RecyclerView.LayoutManager pLayoutManager;
     private RecyclerView.Adapter pAdaper;
+    private ArrayList<String> pDataset;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,6 +98,18 @@ public class TollerproMainActivity extends AppCompatActivity implements Compound
             }
         };
         t.start();
+
+        pDataset=new ArrayList<>();
+        for (int i = 0; i <50 ; i++) {
+            pDataset.add("New Period #"+i);
+        }
+
+        pRecyclerView=(RecyclerView)findViewById(R.id.recyclerviewperiod);
+        pRecyclerView.setHasFixedSize(true);
+        pLayoutManager=new LinearLayoutManager(this);
+        pRecyclerView.setLayoutManager(pLayoutManager);
+        pAdaper=new MainAdapter(pDataset);
+        pRecyclerView.setAdapter(pAdaper);
     }
 
     /**
