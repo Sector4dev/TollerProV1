@@ -221,10 +221,10 @@
         android:layout_marginLeft="71dp"
         android:layout_marginTop="102dp"/>
 
-   <android.support.v7.widget.RecyclerView
+   <!--<android.support.v7.widget.RecyclerView
        android:id="@+id/recyclerviewperiod"
        android:layout_width="match_parent"
-       android:layout_height="match_parent"/>
+       android:layout_height="match_parent"/>-->
 
 
 </RelativeLayout>
