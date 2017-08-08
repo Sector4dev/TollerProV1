@@ -14,9 +14,11 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.android.volley.Request.Method;
+import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.tollerpro.sector4dev.tollerprov1.R;
 import com.tollerpro.sector4dev.tollerprov1.TollerproMainActivity;
 
@@ -35,7 +37,7 @@ import helper.SessionManager;
 public class LoginActivity extends Activity {
     private static final String TAG = RegisterActivity.class.getSimpleName();
     private Button btnLogin;
-    private Button btnLinkToRegister;
+    //private Button btnLinkToRegister;
     private EditText inputEmail;
     private EditText inputPassword;
     private ProgressDialog pDialog;
@@ -50,7 +52,7 @@ public class LoginActivity extends Activity {
         inputEmail = (EditText) findViewById(R.id.email);
         inputPassword = (EditText) findViewById(R.id.password);
         btnLogin = (Button) findViewById(R.id.btnLogin);
-        btnLinkToRegister = (Button) findViewById(R.id.btnLinkToRegisterScreen);
+        //btnLinkToRegister = (Button) findViewById(R.id.btnLinkToRegisterScreen);
 
         // Progress dialog
         pDialog = new ProgressDialog(this);
@@ -92,7 +94,7 @@ public class LoginActivity extends Activity {
         });
 
         // Link to Register Screen
-        btnLinkToRegister.setOnClickListener(new View.OnClickListener() {
+       /* btnLinkToRegister.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View view) {
                 Intent i = new Intent(getApplicationContext(),
@@ -100,7 +102,7 @@ public class LoginActivity extends Activity {
                 startActivity(i);
                 finish();
             }
-        });
+        });*/
 
     }
 
@@ -114,8 +116,7 @@ public class LoginActivity extends Activity {
         pDialog.setMessage("Logging in ...");
         showDialog();
 
-        StringRequest strReq = new StringRequest(Method.POST,
-                AppConfig.URL_LOGIN, new Response.Listener<String>() {
+        StringRequest strReq = new StringRequest(Method.POST, AppConfig.URL_LOGIN, new Response.Listener<String>() {
 
             @Override
             public void onResponse(String response) {
@@ -124,37 +125,36 @@ public class LoginActivity extends Activity {
 
                 try {
                     JSONObject jObj = new JSONObject(response);
-                    boolean error = jObj.getBoolean("error");
+                    //boolean error = jObj.getBoolean("error");
 
                     // Check for error node in json
-                    if (!error) {
+                    /*if (!error) {*/
                         // user successfully logged in
                         // Create login session
                         session.setLogin(true);
 
                         // Now store the user in SQLite
-                        String uid = jObj.getString("uid");
+                        String role = jObj.getString("user_id");
 
-                        JSONObject user = jObj.getJSONObject("user");
-                        String name = user.getString("username");
-                        String email = user.getString("email");
-                        String created_at = user
-                                .getString("created_at");
+                        //JSONObject user = jObj.getJSONObject("user");
+                        String token = jObj.getString("token");
+                        String email = jObj.getString("email");
+                        String timezone = jObj.getString("timezone");
 
                         // Inserting row in users table
-                        db.addUser(name, email, uid, created_at);
+                        db.addUser(token, email, role, timezone);
 
                         // Launch main activity
                         Intent intent = new Intent(LoginActivity.this,
                                 TollerproMainActivity.class);
                         startActivity(intent);
                         finish();
-                    } else {
+                   /* } else {
                         // Error in login. Get the error message
                         String errorMsg = jObj.getString("error_msg");
                         Toast.makeText(getApplicationContext(),
                                 errorMsg, Toast.LENGTH_LONG).show();
-                    }
+                    }*/
                 } catch (JSONException e) {
                     // JSON error
                     e.printStackTrace();
@@ -177,8 +177,8 @@ public class LoginActivity extends Activity {
             protected Map<String, String> getParams() {
                 // Posting parameters to login url
                 Map<String, String> params = new HashMap<String, String>();
-                params.put("email", email);
-                params.put("password", password);
+                params.put("user[email]", email);
+                params.put("user[password]", password);
 
                 return params;
             }
@@ -186,7 +186,9 @@ public class LoginActivity extends Activity {
         };
 
         // Adding request to request queue
-        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
+        //AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(strReq);
     }
 
     private void showDialog() {

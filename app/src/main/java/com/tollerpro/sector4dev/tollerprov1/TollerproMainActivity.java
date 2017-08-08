@@ -104,12 +104,12 @@ public class TollerproMainActivity extends AppCompatActivity implements Compound
             pDataset.add("New Period #"+i);
         }
 
-        pRecyclerView=(RecyclerView)findViewById(R.id.recyclerviewperiod);
+        /*pRecyclerView=(RecyclerView)findViewById(R.id.recyclerviewperiod);
         pRecyclerView.setHasFixedSize(true);
         pLayoutManager=new LinearLayoutManager(this);
         pRecyclerView.setLayoutManager(pLayoutManager);
         pAdaper=new MainAdapter(pDataset);
-        pRecyclerView.setAdapter(pAdaper);
+        pRecyclerView.setAdapter(pAdaper);*/
     }
 
     /**
