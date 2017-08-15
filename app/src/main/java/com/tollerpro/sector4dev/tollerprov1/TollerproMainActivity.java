@@ -2,6 +2,8 @@ package com.tollerpro.sector4dev.tollerprov1;
 
 import android.content.Intent;
 import android.icu.text.SimpleDateFormat;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,6 +18,7 @@ import android.widget.ToggleButton;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import activity.SchedulesetsActivity;
 import helper.SQLiteHandler;
 import helper.SessionManager;
 
@@ -32,6 +35,10 @@ public class TollerproMainActivity extends AppCompatActivity implements Compound
     private RecyclerView.LayoutManager pLayoutManager;
     private RecyclerView.Adapter pAdaper;
     private ArrayList<String> pDataset;
+
+    public String myToken;
+    public String myemail,myId;
+    //private SchedulesetsActivity schdlset;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,12 +60,14 @@ public class TollerproMainActivity extends AppCompatActivity implements Compound
         // Fetching user details from sqlite
         HashMap<String, String> user = db.getUserDetails();
 
-        String name = user.get("username");
-        String email = user.get("email");
+        //String name = user.get("username");
+        myemail = user.get("email");
+        myToken=user.get("token");
+        myId=user.get("dbid");
 
         // Displaying the user details on the screen
-        txtName.setText(name);
-        txtEmail.setText(email);
+        txtName.setText(myToken);
+        txtEmail.setText(myemail);
 
         togglemutebttn=(ToggleButton)findViewById(R.id.buttonmute);
         togglemutebttn.setOnCheckedChangeListener(this);
@@ -74,6 +83,7 @@ public class TollerproMainActivity extends AppCompatActivity implements Compound
                     while (!isInterrupted()) {
                         Thread.sleep(1000);
                         runOnUiThread(new Runnable() {
+                            @RequiresApi(api = Build.VERSION_CODES.N)
                             @Override
                             public void run() {
                                 TextView tdate = (TextView) findViewById(R.id.tollertimer);
@@ -99,17 +109,10 @@ public class TollerproMainActivity extends AppCompatActivity implements Compound
         };
         t.start();
 
-        pDataset=new ArrayList<>();
-        for (int i = 0; i <50 ; i++) {
-            pDataset.add("New Period #"+i);
-        }
+        SchedulesetsActivity schdlset=new SchedulesetsActivity();
 
-        /*pRecyclerView=(RecyclerView)findViewById(R.id.recyclerviewperiod);
-        pRecyclerView.setHasFixedSize(true);
-        pLayoutManager=new LinearLayoutManager(this);
-        pRecyclerView.setLayoutManager(pLayoutManager);
-        pAdaper=new MainAdapter(pDataset);
-        pRecyclerView.setAdapter(pAdaper);*/
+        schdlset.GetSchedules(myemail,myToken,myId,this);
+
     }
 
     /**

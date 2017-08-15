@@ -85,9 +85,7 @@ public class LoginActivity extends Activity {
                     checkLogin(email, password);
                 } else {
                     // Prompt user to enter credentials
-                    Toast.makeText(getApplicationContext(),
-                            "Please enter the credentials!", Toast.LENGTH_LONG)
-                            .show();
+                    Toast.makeText(getApplicationContext(),"Please enter the credentials!", Toast.LENGTH_LONG).show();
                 }
             }
 
@@ -134,7 +132,8 @@ public class LoginActivity extends Activity {
                         session.setLogin(true);
 
                         // Now store the user in SQLite
-                        String role = jObj.getString("user_id");
+                        String role = jObj.getString("role");
+                        String myID = jObj.getString("user_id");
 
                         //JSONObject user = jObj.getJSONObject("user");
                         String token = jObj.getString("token");
@@ -142,7 +141,7 @@ public class LoginActivity extends Activity {
                         String timezone = jObj.getString("timezone");
 
                         // Inserting row in users table
-                        db.addUser(token, email, role, timezone);
+                        db.addUser(token, email, role, myID, timezone);
 
                         // Launch main activity
                         Intent intent = new Intent(LoginActivity.this,
@@ -167,8 +166,7 @@ public class LoginActivity extends Activity {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Log.e(TAG, "Login Error: " + error.getMessage());
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "Login Error: " +error.getMessage(), Toast.LENGTH_LONG).show();
                 hideDialog();
             }
         }) {
