@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class SQLiteHandler extends SQLiteOpenHelper {
@@ -28,7 +29,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     //Regular Timing table name
     private static final String TABLE_REGULAR_TIMING = "timings";
     //Regular Timing table name
-    private static final String TABLE_EXAM_TIMING = "timings";
+    private static final String TABLE_EXAM_TIMING = "examtimings";
 
     // Login Table Columns names
     private static final String KEY_ID = "id";
@@ -42,7 +43,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     private static final String KEY_TID = "id";
     private static final String KEY_DAY = "day";
     private static final String KEY_TIME = "timing";
-    //private static final String KEY_DATE = "date";
+    private static final String KEY_AUDIO = "audio";
 
     public SQLiteHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -62,14 +63,14 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         //Regular Timing Table Creation
         String CREATE_REGULAR_TIMING_TABLE = "CREATE TABLE " + TABLE_REGULAR_TIMING + "("
                 + KEY_TID + " INTEGER PRIMARY KEY,"
-                + KEY_DAY + " TEXT," + KEY_TIME + " TEXT" + ")";
+                + KEY_DAY + " TEXT," + KEY_TIME + " TEXT," + KEY_AUDIO + " TEXT" + ")";
         db.execSQL(CREATE_REGULAR_TIMING_TABLE);
         Log.d(TAG, "Regular Timing Database tables created");
 
         //Exam Timing Table Creation
         String CREATE_EXAM_TIMING_TABLE = "CREATE TABLE " + TABLE_EXAM_TIMING + "("
                 + KEY_TID + " INTEGER PRIMARY KEY,"
-                + KEY_DAY + " TEXT," + KEY_TIME+ " TEXT" + ")";
+                + KEY_DAY + " TEXT," + KEY_TIME+ " TEXT," + KEY_AUDIO + " TEXT" + ")";
         db.execSQL(CREATE_EXAM_TIMING_TABLE);
         Log.d(TAG, "Exam Timing Database tables created");
     }
@@ -84,6 +85,56 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 
         // Create tables again
         onCreate(db);
+    }
+
+    public void ResetDB(){
+        SQLiteDatabase db=this.getWritableDatabase();
+        // Drop older table if existed
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USER);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_REGULAR_TIMING);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_EXAM_TIMING);
+        // Create tables again
+        onCreate(db);
+    }
+
+    public boolean CheckexamScheduleAvail(){
+        String selectQuery = "SELECT  * FROM " + TABLE_EXAM_TIMING;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cur = db.rawQuery(selectQuery, null);
+        //Log.d("Table Status",cur.getCount()+"");
+        boolean statustable=false;
+        if (cur!=null){
+            cur.moveToFirst();
+            if (cur.getCount() <= 0) {
+                //Log.d("SQLITE status", String.valueOf(cur.getInt(0)));
+                //Log.d("SQLite Status","Empty Exam schedules");
+                statustable=false;
+            }else{
+                //Log.d("SQLITE status", String.valueOf(cur.getInt(0)));
+                //Log.d("SQLite Status","Something there in Exam schedules");
+                statustable=true;
+            }
+        }
+        return statustable;
+    }
+
+    public boolean CheckregularScheduleAvail(){
+        String selectQuery = "SELECT  * FROM " + TABLE_REGULAR_TIMING;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cur = db.rawQuery(selectQuery, null);
+        //Log.d("Table Status",cur.getCount()+"");
+        boolean statustable=false;
+        if (cur!=null){
+            cur.moveToFirst();
+            if (cur.getCount() <= 0) {
+                //Log.d("SQLite Status","Empty Regular schedules");
+                statustable=false;
+            }else{
+                //Log.d("SQLite Status","Something there in Regular schedules");
+                statustable=true;
+            }
+        }
+        return statustable;
     }
 
     //Storing user details in database
@@ -104,12 +155,13 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         Log.d(TAG, "New user inserted into sqlite: " + id);
     }
     //Storing regular timings details in database
-    public void addRegularTimings(String day, String timings) {
+    public void addRegularTimings(String day, String timings, String audio) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(KEY_DAY, day); // ID
-        values.put(KEY_TIME, timings); // Token
+        values.put(KEY_DAY, day);
+        values.put(KEY_TIME, timings);
+        values.put(KEY_AUDIO, audio);
         // Inserting Row
         long id = db.insert(TABLE_REGULAR_TIMING, null, values);
         db.close(); // Closing database connection
@@ -117,12 +169,13 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         Log.d(TAG, "New regular timing inserted into sqlite: " + id);
     }
     //Storing exam timings details in database
-    public void addExamTimings(String day, String timings) {
+    public void addExamTimings(String day, String timings, String audio) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(KEY_DAY, day); // ID
-        values.put(KEY_TIME, timings); // Token
+        values.put(KEY_DAY, day);
+        values.put(KEY_TIME, timings);
+        values.put(KEY_AUDIO, audio);
         // Inserting Row
         long id = db.insert(TABLE_EXAM_TIMING, null, values);
         db.close(); // Closing database connection
@@ -155,44 +208,47 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     }
 
     //Getting regular timings data from database
-    public HashMap<String, String> getRegularTimingDetails() {
-        HashMap<String, String> regularTimings = new HashMap<String, String>();
+    public ArrayList<String> getRegularTimingDetails() {
+        ArrayList<String> regularTimings = new ArrayList<String>();
         String selectQuery = "SELECT  * FROM " + TABLE_REGULAR_TIMING;
 
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
         // Move to first row
         cursor.moveToFirst();
-        if (cursor.getCount() > 0) {
-            regularTimings.put(KEY_DAY, cursor.getString(1));
-            regularTimings.put(KEY_TIME, cursor.getString(2));
+        if (cursor.getCount()>0){
+            do {
+                regularTimings.add(cursor.getString(1)+"|"+cursor.getString(2)+"|"+cursor.getString(3));
+
+            } while (cursor.moveToNext());
         }
         cursor.close();
         db.close();
-        // return user
-        Log.d(TAG, "Fetching user from Sqlite: " + regularTimings.toString());
 
+        //Log.d(TAG, "Fetching exam timings from Sqlite: " + regularTimings.toString());
         return regularTimings;
     }
 
     //Getting exam timings data from database
-    public HashMap<String, String> getExamTimingDetails() {
-        HashMap<String, String> examTimings = new HashMap<String, String>();
+    public ArrayList<String> getExamTimingDetails() {
+        //HashMap<String, String> examTimings = new HashMap<String, String>();
+        ArrayList<String> examTimings = new ArrayList<String>();
         String selectQuery = "SELECT  * FROM " + TABLE_EXAM_TIMING;
 
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
         // Move to first row
         cursor.moveToFirst();
-        if (cursor.getCount() > 0) {
-            examTimings.put(KEY_DAY, cursor.getString(1));
-            examTimings.put(KEY_TIME, cursor.getString(2));
+        if (cursor.getCount()>0){
+            do {
+                examTimings.add(cursor.getString(1)+"|"+cursor.getString(2)+"|"+cursor.getString(3));
+
+            } while (cursor.moveToNext());
         }
         cursor.close();
         db.close();
-        // return user
-        Log.d(TAG, "Fetching user from Sqlite: " + examTimings.toString());
 
+        //Log.d(TAG, "Fetching exam timings from Sqlite: " + examTimings.toString());
         return examTimings;
     }
 
