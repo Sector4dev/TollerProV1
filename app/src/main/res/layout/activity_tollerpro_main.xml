@@ -184,9 +184,9 @@
         android:text="TODAY"
         android:textColor="@color/tollergreen"
         android:textStyle="bold"
+        android:layout_marginRight="3dp"
         android:layout_below="@+id/tollertimer"
-        android:layout_toStartOf="@+id/progressshadow"
-        android:layout_marginRight="3dp"/>
+        android:layout_alignStart="@+id/progressBar2" />
     <ImageView
         android:id="@+id/circletoday"
         app:srcCompat="@drawable/circletoday"
@@ -221,10 +221,14 @@
         android:layout_marginLeft="71dp"
         android:layout_marginTop="102dp"/>
 
-   <!--<android.support.v7.widget.RecyclerView
-       android:id="@+id/recyclerviewperiod"
-       android:layout_width="match_parent"
-       android:layout_height="match_parent"/>-->
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/TimeRecyclerView"
+        android:foregroundGravity="bottom"
+        android:layout_height="50dp"
+        android:layout_width="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true">
+    </android.support.v7.widget.RecyclerView>
 
 
 </RelativeLayout>

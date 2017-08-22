@@ -13,39 +13,35 @@ import java.util.ArrayList;
  */
 
 class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
-    private ArrayList<String> pDataset;
 
-    MainAdapter(ArrayList<String> pDataset) {
-        this.pDataset = pDataset;
+    private ArrayList<String> mDataSet;
+
+    public MainAdapter(ArrayList<String> dataSet) {
+        mDataSet = dataSet;
     }
-
 
     @Override
     public MainAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        // create a new view
-        TextView v = (TextView) LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.row, parent, false);
-        // set the view's size, margins, paddings and layout parameters
-        ViewHolder vh = new ViewHolder(v);
+        View v= LayoutInflater.from(parent.getContext()).inflate(R.layout.row, parent, false);
+        ViewHolder vh= new ViewHolder(v);
         return vh;
     }
 
     @Override
-    public void onBindViewHolder(MainAdapter.ViewHolder holder, int position) {
-        holder.ptitle.setText(pDataset.get(position));
-
+    public void onBindViewHolder(ViewHolder holder, int position) {
+        holder.mTitle.setText(mDataSet.get(position));
     }
 
     @Override
     public int getItemCount() {
-        return pDataset.size();
+        return mDataSet.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView ptitle;
+        public TextView mTitle;
         public ViewHolder(View itemView) {
             super(itemView);
-            ptitle=(TextView)itemView.findViewById(R.id.ptitles);
+            mTitle=(TextView) itemView.findViewById(R.id.title);
         }
     }
 }

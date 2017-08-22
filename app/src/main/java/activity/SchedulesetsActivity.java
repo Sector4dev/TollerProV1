@@ -44,6 +44,7 @@ public class SchedulesetsActivity extends Activity {
 
     private ArrayList<String> TimingR=new ArrayList<String>();
     private ArrayList<String> AssignationR=new ArrayList<String>();
+    private int[] TimingSizes,AssignSizes;
 
     private boolean timingstatus=false,assignstatus=false,Rtimingstatus=false,Rassignstatus=false;
 
@@ -239,6 +240,8 @@ public class SchedulesetsActivity extends Activity {
                     JSONObject schdljObj = new JSONObject(response);
                     JSONArray schdljarray= schdljObj.getJSONArray("data");
                     Log.d("Regular Schedules",schdljarray.toString());
+                    TimingSizes=new int[schdljarray.length()];
+                    AssignSizes=new int[schdljarray.length()];
                     if (schdljarray.length()>0) {
                         int TfullLength=0,AfullLength=0;
                         for (int sc=0;sc<schdljarray.length();sc++) {
@@ -247,7 +250,8 @@ public class SchedulesetsActivity extends Activity {
                             JSONArray timings = schdljarray.getJSONObject(sc).getJSONObject("relationships").getJSONObject("timings").getJSONArray("data");
                             JSONArray assignations = schdljarray.getJSONObject(sc).getJSONObject("relationships").getJSONObject("assignations").getJSONArray("data");
                             Log.d("Schedules",timings.length()+"|"+assignations.length());
-
+                            TimingSizes[sc]=timings.length();
+                            AssignSizes[sc]=assignations.length();
                             if (timings.length()>0) {
                                 for (int i = 0; i < timings.length(); i++) {
                                     TimingR.add("!");
@@ -440,17 +444,27 @@ public class SchedulesetsActivity extends Activity {
 
     }
 
-
+    public boolean ExamSetDB=false,RegularSetDB=false;
     private void AddingtoDB_timing_assign_Exam(Context context){
         SQLiteHandler dbHandler=new SQLiteHandler(context);
         Log.d("SQLite Status","Lets Exam schedules Push to Local Db");
         String tempT="";
         for (int k=0;k<TimingE.size();k++){
             tempT=tempT+"+"+TimingE.get(k).toString();
+            //Log.d("Full Time Exam",tempT);
         }
         for (int m=0;m<AssignationE.size();m++) {
             //Log.d("Timings",tempT);
             dbHandler.addExamTimings(AssignationE.get(m).toString(),tempT,"audio");
+            if (m==AssignationE.size()-1){
+                ExamSetDB=true;
+                if ((ExamSetDB)&&(RegularSetDB)){
+                    TollerproMainActivity myActivity=new TollerproMainActivity();
+                    //myActivity.FetchFromSqlite(context);
+
+                    myActivity.pDialog.dismiss();
+                }
+            }
         }
     }
 
@@ -458,12 +472,52 @@ public class SchedulesetsActivity extends Activity {
         SQLiteHandler dbHandler=new SQLiteHandler(context);
         Log.d("SQLite Status","Lets Regular schedules Push to Local Db");
         String tempT="";
-        for (int k=0;k<TimingE.size();k++){
-            tempT=tempT+"+"+TimingE.get(k).toString();
+        int Tindex=0,Asize=0;
+        for (int q=0;q<TimingSizes.length;q++) {
+
+            Log.d("Timing Size", String.valueOf(q));
+
+            if (q==TimingSizes.length-1){
+                Log.d("Inside","Inside");
+                RegularSetDB=true;
+                if ((ExamSetDB)&&(RegularSetDB)){
+                    Log.d("SQLITE Fetch","Lets fetch from SQLite");
+                    TollerproMainActivity myActivity=new TollerproMainActivity();
+                    //myActivity.FetchFromSqlite(context);
+
+                    myActivity.pDialog.dismiss();
+                }
+            }
+
+            if (TimingSizes[q]>0) {
+                for (int k = Tindex; k < (Tindex + TimingSizes[q]); k++) {
+                    tempT = tempT + "+" + TimingR.get(k).toString();
+                    Log.d("Full Time Regular", tempT);
+                    if (k >= TimingSizes[q] - 1) {
+
+                        for (int m = 0; m < AssignSizes[q]; m++) {
+                            dbHandler.addRegularTimings(AssignationR.get(m).toString(), tempT, "audio");
+                            if (m == AssignSizes[q] - 1) {
+                                tempT = "";
+                                /*RegularSetDB=true;
+                                if ((ExamSetDB)&&(RegularSetDB)){
+                                    Log.d("SQLITE Fetch","Lets fetch from SQLite");
+                                    TollerproMainActivity myActivity=new TollerproMainActivity();
+                                    myActivity.FetchFromSqlite();
+                                }*/
+                            }
+                        }
+                    }
+                    if (k>=(Tindex + TimingSizes[q])){
+                        Tindex = (Tindex + TimingSizes[q]);
+                        Log.d("time string", "Emty temp" + Tindex);
+                    }
+                }
+            }
+
+
         }
-        for (int m=0;m<AssignationR.size();m++) {
-            dbHandler.addRegularTimings(AssignationR.get(m).toString(),tempT,"audio");
-        }
+
     }
 
 }
