@@ -106,6 +106,11 @@ public class LoginActivity extends Activity {
 
     }
 
+    public void onBackPressed() {
+
+        return;
+    }
+
     /**
      * function to verify login details in mysql db
      * */

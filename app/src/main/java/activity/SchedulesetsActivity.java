@@ -1,6 +1,7 @@
 package activity;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -37,7 +38,9 @@ import static android.content.ContentValues.TAG;
  * Created by Sector4 Dev on 8/10/2017.
  */
 
-public class SchedulesetsActivity extends Activity {
+public class SchedulesetsActivity {
+
+
     private SQLiteHandler db;
     private ArrayList<String> TimingE=new ArrayList<String>();
     private ArrayList<String> AssignationE=new ArrayList<String>();
@@ -48,13 +51,17 @@ public class SchedulesetsActivity extends Activity {
 
     private boolean timingstatus=false,assignstatus=false,Rtimingstatus=false,Rassignstatus=false;
 
-    public void onCreate(Bundle savedInstanceState)
+    /*public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+    }*/
+    private Context context;
+    public SchedulesetsActivity(Context context){
+        this.context=context;
     }
 
-    public void GetExamSchedules(final String email, final String token, final String id, final Context context) {
-        RequestQueue requestQueues = Volley.newRequestQueue(context);
+    public void GetExamSchedules(final String email, final String token, final String id,final ProgressDialog pDialog,final Intent intent) {
+        RequestQueue requestQueues = Volley.newRequestQueue(this.context);
 
         StringRequest stringRequest = new StringRequest(Request.Method.GET, AppConfig.URL_EXAMSCHEDULESETS+id, new Response.Listener<String>()
         {
@@ -69,12 +76,12 @@ public class SchedulesetsActivity extends Activity {
 
                     for (int i=0;i<timings.length();i++) {
                         TimingE.add("!");
-                        getExamTimings(email, token, timings.getJSONObject(i).getString("id").toString(), context,i,timings.length());
+                        getExamTimings(email, token, timings.getJSONObject(i).getString("id").toString() ,i,timings.length(),pDialog,intent);
 
                     }
                     for (int j=0;j<assignations.length();j++) {
                         AssignationE.add("!");
-                        getExamAssignations(email, token, assignations.getJSONObject(j).getString("id").toString(), context,j,assignations.length());
+                        getExamAssignations(email, token, assignations.getJSONObject(j).getString("id").toString(),j,assignations.length(),pDialog,intent);
                     }
 
                 } catch (JSONException e) {
@@ -101,7 +108,7 @@ public class SchedulesetsActivity extends Activity {
         requestQueues.add(stringRequest);
     }
 
-    public void getExamTimings(final String email, final String token, final String id, final Context context, final int index, final int fullsize){
+    public void getExamTimings(final String email, final String token, final String id, final int index, final int fullsize, final ProgressDialog pDialog,final Intent intent){
         RequestQueue requestQueues = Volley.newRequestQueue(context);
         //final String[] thisTime = {""};
 
@@ -129,7 +136,7 @@ public class SchedulesetsActivity extends Activity {
                                         if ((timingstatus)&&(assignstatus)){
                                             timingstatus=false;
                                             assignstatus=false;
-                                            AddingtoDB_timing_assign_Exam(context);
+                                            AddingtoDB_timing_assign_Exam(pDialog,intent);
                                         }
 
                                     }
@@ -164,7 +171,7 @@ public class SchedulesetsActivity extends Activity {
 
     }
 
-    public void getExamAssignations(final String email, final String token, final String id, final Context context, final int index, final int fullsize){
+    public void getExamAssignations(final String email, final String token, final String id, final int index, final int fullsize,final ProgressDialog pDialog,final Intent intent){
         RequestQueue requestQueues = Volley.newRequestQueue(context);
         //final String[] thisTime = {""};
 
@@ -194,7 +201,7 @@ public class SchedulesetsActivity extends Activity {
                                         if ((timingstatus)&&(assignstatus)){
                                             timingstatus=false;
                                             assignstatus=false;
-                                            AddingtoDB_timing_assign_Exam(context);
+                                            AddingtoDB_timing_assign_Exam(pDialog,intent);
                                         }
                                     }
                                 }
@@ -228,7 +235,7 @@ public class SchedulesetsActivity extends Activity {
 
     }
 
-    public void GetRegularSchedules(final String email, final String token, final String id, final Context context) {
+    public void GetRegularSchedules(final String email, final String token, final String id, final ProgressDialog pDialog,final Intent intent) {
         RequestQueue requestQueues = Volley.newRequestQueue(context);
 
         StringRequest stringRequest = new StringRequest(Request.Method.GET, AppConfig.URL_SCHEDULESETS+id, new Response.Listener<String>()
@@ -256,7 +263,7 @@ public class SchedulesetsActivity extends Activity {
                                 for (int i = 0; i < timings.length(); i++) {
                                     TimingR.add("!");
                                     //Log.d("Timings Length",""+TimingR.size());
-                                    getRegularTimings(email, token, timings.getJSONObject(i).getString("id").toString(), context, i+TfullLength, timings.length());
+                                    getRegularTimings(email, token, timings.getJSONObject(i).getString("id").toString(), i+TfullLength, timings.length(),pDialog,intent);
                                     if (i>=timings.length()-1){
                                         TfullLength+=timings.length();
                                         Log.d("Timing Length", String.valueOf(TfullLength));
@@ -272,7 +279,7 @@ public class SchedulesetsActivity extends Activity {
                                 for (int j = 0; j < assignations.length(); j++) {
                                     AssignationR.add("!");
                                     //Log.d("Assignations Length",""+TimingR.size());
-                                    getRegularAssignations(email, token, assignations.getJSONObject(j).getString("id").toString(), context, j+AfullLength, assignations.length());
+                                    getRegularAssignations(email, token, assignations.getJSONObject(j).getString("id").toString(), j+AfullLength, assignations.length(),pDialog,intent);
                                     if (j>=assignations.length()-1){
                                         AfullLength+=assignations.length();
                                         Log.d("Assignation Length", String.valueOf(AfullLength));
@@ -314,7 +321,7 @@ public class SchedulesetsActivity extends Activity {
         requestQueues.add(stringRequest);
     }
 
-    public void getRegularTimings(final String email, final String token, final String id, final Context context, final int index, final int fullsize){
+    public void getRegularTimings(final String email, final String token, final String id,final int index, final int fullsize,final ProgressDialog pDialog,final Intent intent){
         RequestQueue requestQueues = Volley.newRequestQueue(context);
         //final String[] thisTime = {""};
 
@@ -344,7 +351,7 @@ public class SchedulesetsActivity extends Activity {
                                         if ((timingstatus)&&(assignstatus)){
                                             timingstatus=false;
                                             assignstatus=false;
-                                            AddingtoDB_timing_assign_Regular(context);
+                                            AddingtoDB_timing_assign_Regular(pDialog,intent);
                                         }
 
                                     }
@@ -379,7 +386,7 @@ public class SchedulesetsActivity extends Activity {
 
     }
 
-    public void getRegularAssignations(final String email, final String token, final String id, final Context context, final int index, final int fullsize){
+    public void getRegularAssignations(final String email, final String token, final String id, final int index, final int fullsize,final ProgressDialog pDialog,final Intent intent){
         RequestQueue requestQueues = Volley.newRequestQueue(context);
         //final String[] thisTime = {""};
 
@@ -410,7 +417,7 @@ public class SchedulesetsActivity extends Activity {
                                         if ((timingstatus)&&(assignstatus)){
                                             timingstatus=false;
                                             assignstatus=false;
-                                            AddingtoDB_timing_assign_Regular(context);
+                                            AddingtoDB_timing_assign_Regular(pDialog,intent);
                                         }
                                     }
                                 }
@@ -445,7 +452,7 @@ public class SchedulesetsActivity extends Activity {
     }
 
     public boolean ExamSetDB=false,RegularSetDB=false;
-    private void AddingtoDB_timing_assign_Exam(Context context){
+    private void AddingtoDB_timing_assign_Exam(ProgressDialog pDialog,Intent intent){
         SQLiteHandler dbHandler=new SQLiteHandler(context);
         Log.d("SQLite Status","Lets Exam schedules Push to Local Db");
         String tempT="";
@@ -460,15 +467,18 @@ public class SchedulesetsActivity extends Activity {
                 ExamSetDB=true;
                 if ((ExamSetDB)&&(RegularSetDB)){
                     TollerproMainActivity myActivity=new TollerproMainActivity();
-                    //myActivity.FetchFromSqlite(context);
 
-                    myActivity.pDialog.dismiss();
+                    myActivity.Restart_Fetch(intent);
+
+                    pDialog.dismiss();
+
+                    //finish();
                 }
             }
         }
     }
 
-    private void AddingtoDB_timing_assign_Regular(Context context){
+    private void AddingtoDB_timing_assign_Regular(ProgressDialog pDialog,Intent intent){
         SQLiteHandler dbHandler=new SQLiteHandler(context);
         Log.d("SQLite Status","Lets Regular schedules Push to Local Db");
         String tempT="";
@@ -483,9 +493,12 @@ public class SchedulesetsActivity extends Activity {
                 if ((ExamSetDB)&&(RegularSetDB)){
                     Log.d("SQLITE Fetch","Lets fetch from SQLite");
                     TollerproMainActivity myActivity=new TollerproMainActivity();
-                    //myActivity.FetchFromSqlite(context);
 
-                    myActivity.pDialog.dismiss();
+                    myActivity.Restart_Fetch(intent);
+
+                    pDialog.dismiss();
+
+                   //finish();
                 }
             }
 
@@ -499,12 +512,6 @@ public class SchedulesetsActivity extends Activity {
                             dbHandler.addRegularTimings(AssignationR.get(m).toString(), tempT, "audio");
                             if (m == AssignSizes[q] - 1) {
                                 tempT = "";
-                                /*RegularSetDB=true;
-                                if ((ExamSetDB)&&(RegularSetDB)){
-                                    Log.d("SQLITE Fetch","Lets fetch from SQLite");
-                                    TollerproMainActivity myActivity=new TollerproMainActivity();
-                                    myActivity.FetchFromSqlite();
-                                }*/
                             }
                         }
                     }
@@ -514,10 +521,9 @@ public class SchedulesetsActivity extends Activity {
                     }
                 }
             }
-
-
         }
 
     }
+
 
 }

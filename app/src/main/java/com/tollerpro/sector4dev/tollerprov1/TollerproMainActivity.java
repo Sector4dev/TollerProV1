@@ -1,9 +1,15 @@
 package com.tollerpro.sector4dev.tollerprov1;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.icu.text.SimpleDateFormat;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +24,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -29,7 +37,7 @@ import activity.SchedulesetsActivity;
 import helper.SQLiteHandler;
 import helper.SessionManager;
 
-public class TollerproMainActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener {
+public class TollerproMainActivity extends Activity implements CompoundButton.OnCheckedChangeListener {
     ToggleButton togglemutebttn,toggleamplibttn;
 
     private TextView txtName;
@@ -51,14 +59,13 @@ public class TollerproMainActivity extends AppCompatActivity implements Compound
     private RecyclerView.LayoutManager mLayoutManager;
     private ArrayList<String> mDataSet;
 
-    private Intent mayireIntent;
+
     public ProgressDialog pDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tollerpro_main);
-        mayireIntent=getIntent();
 
         txtName = (TextView) findViewById(R.id.textViewUsername);
         txtEmail = (TextView) findViewById(R.id.textViewPlace);
@@ -137,35 +144,41 @@ public class TollerproMainActivity extends AppCompatActivity implements Compound
         };
         t.start();
 
-        FetchFromSqlite(getApplicationContext());
+        Intent intent = new Intent(this, LoginActivity.class);
+        //Intent intent = this.getIntent();
 
-    }
-    AppCompatActivity appcomp;
-    public void Restart_Fetch(){
-        //startActivity(getIntent());
-        /*Intent mIntent = getIntent();
-        finish();*/
-        //startActivity(mIntent);
+        FetchFromSqlite(intent);
 
     }
 
-    public void showDialog() {
+    @Override
+    public void onBackPressed() {
+
+        return;
+    }
+
+    public void Restart_Fetch(Intent intent){
+        getApplicationContext().startActivity(intent);
+        finish();
+    }
+
+    private void showDialog() {
         if (!pDialog.isShowing())
             pDialog.show();
     }
 
-    public void hideDialog() {
+    private void hideDialog() {
         if (pDialog.isShowing())
             pDialog.dismiss();
     }
 
-    public void FetchFromSqlite(Context context){
+    public void FetchFromSqlite(Intent intent){
         //finish();
         //startActivity(mayireIntent);
         pDialog.setMessage("Fetching Data ...");
         showDialog();
 
-        SchedulesetsActivity schdlset=new SchedulesetsActivity();
+        SchedulesetsActivity schdlset=new SchedulesetsActivity(this);
         schdlset.RegularSetDB=false;
         schdlset.ExamSetDB=false;
 
@@ -174,7 +187,7 @@ public class TollerproMainActivity extends AppCompatActivity implements Compound
         String CurrDay=new java.text.SimpleDateFormat("EEEE").format(date).toLowerCase();
         Log.d("Current Date",CurrDate+CurrDay);
 
-        db=new SQLiteHandler(context);
+        db=new SQLiteHandler(this);
 
         //schdlset.GetSchedules(myemail,myToken,myId,this);
         //Checking any exam Timings available
@@ -197,7 +210,7 @@ public class TollerproMainActivity extends AppCompatActivity implements Compound
             }
         }else {
             Log.d("Exam Schedule","Exam schedules not available,Fetch from Server");
-            schdlset.GetExamSchedules(myemail,myToken,myId,this);
+            schdlset.GetExamSchedules(myemail,myToken,myId,pDialog,intent);
         }
 
         if (db.CheckregularScheduleAvail()){
@@ -206,8 +219,9 @@ public class TollerproMainActivity extends AppCompatActivity implements Compound
             //Log.d("Regular Schedule", String.valueOf(Rschedules));
         }else{
             Log.d("Regular Schedule","Regular schedules not available,Fetch from Server");
-            schdlset.GetRegularSchedules(myemail,myToken,myId,this);
+            schdlset.GetRegularSchedules(myemail,myToken,myId,pDialog,intent);
         }
+        //hideDialog();
     }
 
     private void InitializeListViewTime(String ListData){
@@ -223,6 +237,7 @@ public class TollerproMainActivity extends AppCompatActivity implements Compound
         mDataSet=stringList;
 
         mRecyclerView.setHasFixedSize(true);
+        //mAdapter.setHasStableIds(true);
 
         mLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         mRecyclerView.setLayoutManager(mLayoutManager);
@@ -269,9 +284,7 @@ public class TollerproMainActivity extends AppCompatActivity implements Compound
 
                         }else{
                             Log.d("Today",Rdate.get(p)+"="+curDay+"-NO");
-                            /*if (p==Rdate.size()-1) {
-
-                            }*/
+                            hideDialog();
                         }
                     }
                 }
@@ -301,6 +314,40 @@ public class TollerproMainActivity extends AppCompatActivity implements Compound
             //Toast.makeText(this,"enabed",Toast.LENGTH_SHORT).show();
         }else{
             //Toast.makeText(this,"disabled",Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    //Check if internet is present or not
+    private boolean isConnectingToInternet() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager
+                .getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnected())
+            return true;
+        else
+            return false;
+    }
+    private MediaPlayer mediaPlayer;
+    private void playSounds(){
+        String localUrl=getApplicationContext().getFilesDir() + File.separator + "furrow.mp3";
+        Uri myUri = Uri.parse(localUrl); // initialize Uri here
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        try {
+            mediaPlayer.setDataSource(getApplicationContext(), myUri);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            mediaPlayer.prepare();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        mediaPlayer.start();
+    }
+    private void MuteSounds(){
+        if (mediaPlayer!=null){
+            mediaPlayer.setVolume(0,0);
         }
     }
 }
