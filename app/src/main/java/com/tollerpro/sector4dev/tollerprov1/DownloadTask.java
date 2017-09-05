@@ -24,12 +24,12 @@ public class DownloadTask {
     private Button buttonText;
     private String downloadUrl = "", downloadFileName = "";
 
-    public DownloadTask(Context context, Button buttonText, String downloadUrl) {
+    public DownloadTask(Context context, String downloadUrl, String filename) {
         this.context = context;
-        this.buttonText = buttonText;
+        //this.buttonText = buttonText;
         this.downloadUrl = downloadUrl;
 
-        downloadFileName = "furrow.mp3";//downloadUrl.replace(Utils.mainUrl, "");//Create file name by picking download file name from URL
+        downloadFileName = filename;//downloadUrl.replace(Utils.mainUrl, "");//Create file name by picking download file name from URL
         Log.e(TAG, downloadFileName);
 
         //Start Downloading Task
@@ -44,7 +44,7 @@ public class DownloadTask {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            buttonText.setEnabled(false);
+            //buttonText.setEnabled(false);
             //buttonText.setText(R.string.downloadStarted);//Set Button Text when download started
         }
 
@@ -90,7 +90,7 @@ public class DownloadTask {
         @Override
         protected Void doInBackground(Void... arg0) {
             try {
-                URL url = new URL("http://www.sectorfour.in/tollerpro/furrow.mp3");//Create Download URl
+                URL url = new URL(downloadUrl);//Create Download URl
                 HttpURLConnection c = (HttpURLConnection) url.openConnection();//Open Url Connection
                 c.setRequestMethod("GET");//Set Request Method to "GET" since we are grtting data
                 c.connect();//connect the URL Connection
@@ -109,7 +109,7 @@ public class DownloadTask {
                     Log.e(TAG, "Directory Created.");
                 }*/
                 Log.d("Directory",""+context.getFilesDir());
-                outputFile = new File(context.getFilesDir() + File.separator + "furrow.mp3");//Create Output file in Main File
+                outputFile = new File(context.getFilesDir() + File.separator + downloadFileName);//Create Output file in Main File
 
                 //Create New File if not present
                 if (!outputFile.exists()) {

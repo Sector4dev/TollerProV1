@@ -18,6 +18,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.tollerpro.sector4dev.tollerprov1.DownloadTask;
 import com.tollerpro.sector4dev.tollerprov1.TollerproMainActivity;
 
 import org.json.JSONArray;
@@ -44,12 +45,14 @@ public class SchedulesetsActivity {
     private SQLiteHandler db;
     private ArrayList<String> TimingE=new ArrayList<String>();
     private ArrayList<String> AssignationE=new ArrayList<String>();
+    private ArrayList<String> AudiosE=new ArrayList<String>();
 
     private ArrayList<String> TimingR=new ArrayList<String>();
     private ArrayList<String> AssignationR=new ArrayList<String>();
+    private ArrayList<String> AudiosR=new ArrayList<String>();
     private int[] TimingSizes,AssignSizes;
 
-    private boolean timingstatus=false,assignstatus=false,Rtimingstatus=false,Rassignstatus=false;
+    private boolean timingstatus=false,assignstatus=false,Rtimingstatus=false,Rassignstatus=false,audiostatus=false;
 
     /*public void onCreate(Bundle savedInstanceState)
     {
@@ -69,19 +72,31 @@ public class SchedulesetsActivity {
             public void onResponse(String response)
             {
                 try {
-                    JSONObject schdljObj = new JSONObject(response);
-                    JSONArray schdljarray= schdljObj.getJSONArray("data");
-                    JSONArray timings = schdljarray.getJSONObject(0).getJSONObject("relationships").getJSONObject("examtimings").getJSONArray("data");
-                    JSONArray assignations = schdljarray.getJSONObject(0).getJSONObject("relationships").getJSONObject("examassignations").getJSONArray("data");
+                    if (response!=null) {
+                        JSONObject schdljObj = new JSONObject(response);
+                        JSONArray schdljarray = schdljObj.getJSONArray("data");
+                        /*Log.d("Exam Schedules",schdljarray.toString());*/
 
-                    for (int i=0;i<timings.length();i++) {
-                        TimingE.add("!");
-                        getExamTimings(email, token, timings.getJSONObject(i).getString("id").toString() ,i,timings.length(),pDialog,intent);
+                        JSONArray timings = schdljarray.getJSONObject(0).getJSONObject("relationships").getJSONObject("examtimings").getJSONArray("data");
+                        JSONArray assignations = schdljarray.getJSONObject(0).getJSONObject("relationships").getJSONObject("examassignations").getJSONArray("data");
+                        if (timings.length() > 0) {
+                            Log.d("Exam Timings",schdljarray.toString());
+                            for (int i = 0; i < timings.length(); i++) {
+                                TimingE.add("!");
+                                getExamTimings(email, token, timings.getJSONObject(i).getString("id").toString(), i, timings.length(), pDialog, intent);
 
-                    }
-                    for (int j=0;j<assignations.length();j++) {
-                        AssignationE.add("!");
-                        getExamAssignations(email, token, assignations.getJSONObject(j).getString("id").toString(),j,assignations.length(),pDialog,intent);
+                            }
+                            for (int j = 0; j < assignations.length(); j++) {
+                                AssignationE.add("!");
+                                getExamAssignations(email, token, assignations.getJSONObject(j).getString("id").toString(), j, assignations.length(), pDialog, intent);
+                            }
+                        } else {
+                            Log.d("Exam Schedules", "No Exams schedules!");
+                            ExamSetDB = true;
+                        }
+                    }else {
+                        Log.d("Exam Schedules", "No Exams schedules!");
+                        ExamSetDB = true;
                     }
 
                 } catch (JSONException e) {
@@ -246,7 +261,7 @@ public class SchedulesetsActivity {
                 try {
                     JSONObject schdljObj = new JSONObject(response);
                     JSONArray schdljarray= schdljObj.getJSONArray("data");
-                    Log.d("Regular Schedules",schdljarray.toString());
+                    //Log.d("Regular Schedules",schdljarray.toString());
                     TimingSizes=new int[schdljarray.length()];
                     AssignSizes=new int[schdljarray.length()];
                     if (schdljarray.length()>0) {
@@ -256,22 +271,24 @@ public class SchedulesetsActivity {
                         //while (sc<schdljarray.length()){
                             JSONArray timings = schdljarray.getJSONObject(sc).getJSONObject("relationships").getJSONObject("timings").getJSONArray("data");
                             JSONArray assignations = schdljarray.getJSONObject(sc).getJSONObject("relationships").getJSONObject("assignations").getJSONArray("data");
-                            Log.d("Schedules",timings.length()+"|"+assignations.length());
+                            //Log.d("Schedules",timings.toString()+"|"+assignations.toString());
                             TimingSizes[sc]=timings.length();
                             AssignSizes[sc]=assignations.length();
                             if (timings.length()>0) {
                                 for (int i = 0; i < timings.length(); i++) {
                                     TimingR.add("!");
+                                    AudiosR.add("!");
                                     //Log.d("Timings Length",""+TimingR.size());
                                     getRegularTimings(email, token, timings.getJSONObject(i).getString("id").toString(), i+TfullLength, timings.length(),pDialog,intent);
                                     if (i>=timings.length()-1){
                                         TfullLength+=timings.length();
-                                        Log.d("Timing Length", String.valueOf(TfullLength));
+                                        //Log.d("Timing Length", String.valueOf(TfullLength));
                                     }
                                 }
                                 //sc++;
                             }else{
                                 Log.d("Timings Array","Empty");
+                                RegularSetDB=true;
                                 //sc=schdljarray.length();
                             }
 
@@ -282,7 +299,7 @@ public class SchedulesetsActivity {
                                     getRegularAssignations(email, token, assignations.getJSONObject(j).getString("id").toString(), j+AfullLength, assignations.length(),pDialog,intent);
                                     if (j>=assignations.length()-1){
                                         AfullLength+=assignations.length();
-                                        Log.d("Assignation Length", String.valueOf(AfullLength));
+                                        //Log.d("Assignation Length", String.valueOf(AfullLength));
                                     }
                                 }
                                 //sc++;
@@ -295,6 +312,7 @@ public class SchedulesetsActivity {
                         }
                     }else{
                         Log.d("Schedulesets","No schedulesets");
+                        //RegularSetDB=true;
                     }
 
                 } catch (JSONException e) {
@@ -332,7 +350,14 @@ public class SchedulesetsActivity {
                 try {
                     if (response!=null) {
                         JSONObject etimingjObj = new JSONObject(response);
+
                         String tempTime = etimingjObj.getJSONObject("data").getJSONObject("attributes").getString("time").toString();
+
+                        String tempAudio= etimingjObj.getJSONObject("data").getJSONObject("relationships").getJSONObject("audio").getJSONObject("data").getString("id").toString();
+                        Log.d("Timing",tempTime);
+
+                        getAudios(email, token, tempAudio, index, fullsize,pDialog,intent);
+
                         String[] separated = tempTime.split("T");
                         TimingR.set(index, separated[1]);
 
@@ -347,11 +372,13 @@ public class SchedulesetsActivity {
                                     Log.d("Completed","Yes Completed Timing");
                                     temp_count-=1;
                                     if (temp_count==0) {
-                                        timingstatus=true;
-                                        if ((timingstatus)&&(assignstatus)){
-                                            timingstatus=false;
-                                            assignstatus=false;
+                                        Rtimingstatus=true;
+                                        if ((Rtimingstatus)&&(Rassignstatus)&&(audiostatus)){
+                                            Rtimingstatus=false;
+                                            Rassignstatus=false;
+                                            audiostatus=false;
                                             AddingtoDB_timing_assign_Regular(pDialog,intent);
+
                                         }
 
                                     }
@@ -386,6 +413,82 @@ public class SchedulesetsActivity {
 
     }
 
+    public void getAudios(final String email, final String token, final String id,final int index, final int fullsize,final ProgressDialog pDialog,final Intent intent){
+        RequestQueue requestQueues = Volley.newRequestQueue(context);
+        //final String[] thisTime = {""};
+
+        StringRequest audioRequest=new StringRequest(Request.Method.GET, AppConfig.URL_AUDIO+id, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+
+                try {
+                    if (response!=null) {
+                        JSONObject etimingjObj = new JSONObject(response);
+                        String tempAudio = etimingjObj.getJSONObject("data").getJSONObject("attributes").getString("fullurl").toString();
+                        String tempName=etimingjObj.getJSONObject("data").getJSONObject("attributes").getString("filename").toString();
+                        //String[] separated = tempAudio.split("T");
+                        AudiosR.set(index, tempAudio+"|"+tempName);
+                        //Log.d("Audio file",AudiosR.get(index));
+
+                        if (AudiosR.size() >= fullsize) {
+                            int temp_count=AudiosR.size();
+                            Log.d("Audios size",temp_count+"");
+                            for (int k = 0; k < AudiosR.size(); k++) {
+                                if (AudiosR.get(k)=="!"){
+                                    Log.d("Completed","Not Completed Audios");
+                                }else
+                                {
+                                    TollerproMainActivity tempMain=new TollerproMainActivity();
+                                    String[] seperatedA=AudiosR.get(k).split("\\|");
+                                    new DownloadTask(context, seperatedA[0],seperatedA[1]);
+                                    /*if (tempMain.isConnectingToInternet())
+                                        new DownloadTask(context, seperatedA[0],seperatedA[1]);
+                                    else
+                                        Log.d("Connection","Connection failed!");*/
+
+                                    Log.d("Completed","Yes Completed Audios");
+                                    temp_count-=1;
+                                    if (temp_count==0) {
+                                        audiostatus=true;
+                                        if ((Rtimingstatus)&&(Rassignstatus)&&(audiostatus)){
+                                            Rtimingstatus=false;
+                                            Rassignstatus=false;
+                                            audiostatus=false;
+                                            AddingtoDB_timing_assign_Regular(pDialog,intent);
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        },new Response.ErrorListener()
+        {
+            @Override
+            public void onErrorResponse (VolleyError volleyError)
+            {
+            }
+        })
+        {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String>  headers = new HashMap<String, String>();
+
+                headers.put("Authorization","Token token="+token+","+"email="+email);
+
+                return headers;
+            }
+        };
+        requestQueues.add(audioRequest);
+
+    }
+
     public void getRegularAssignations(final String email, final String token, final String id, final int index, final int fullsize,final ProgressDialog pDialog,final Intent intent){
         RequestQueue requestQueues = Volley.newRequestQueue(context);
         //final String[] thisTime = {""};
@@ -412,11 +515,12 @@ public class SchedulesetsActivity {
                                     Log.d("Completed", "Yes Completed assignation"+AssignationR.get(k));
                                     temp_count-=1;
                                     if (temp_count==0) {
-                                        assignstatus=true;
+                                        Rassignstatus=true;
 
-                                        if ((timingstatus)&&(assignstatus)){
-                                            timingstatus=false;
-                                            assignstatus=false;
+                                        if ((Rtimingstatus)&&(Rassignstatus)&&(audiostatus)){
+                                            Rtimingstatus=false;
+                                            Rassignstatus=false;
+                                            audiostatus=false;
                                             AddingtoDB_timing_assign_Regular(pDialog,intent);
                                         }
                                     }
@@ -457,7 +561,9 @@ public class SchedulesetsActivity {
         Log.d("SQLite Status","Lets Exam schedules Push to Local Db");
         String tempT="";
         for (int k=0;k<TimingE.size();k++){
-            tempT=tempT+"+"+TimingE.get(k).toString();
+            String[] splitedTime=TimingE.get(k).split("\\.");
+            tempT +=splitedTime[0]+"+";
+            //tempT +=TimingE.get(k).toString()+"+";
             //Log.d("Full Time Exam",tempT);
         }
         for (int m=0;m<AssignationE.size();m++) {
@@ -468,7 +574,7 @@ public class SchedulesetsActivity {
                 if ((ExamSetDB)&&(RegularSetDB)){
                     TollerproMainActivity myActivity=new TollerproMainActivity();
 
-                    myActivity.Restart_Fetch(intent);
+                    myActivity.Restart_Fetch(intent,context);
 
                     pDialog.dismiss();
 
@@ -481,37 +587,38 @@ public class SchedulesetsActivity {
     private void AddingtoDB_timing_assign_Regular(ProgressDialog pDialog,Intent intent){
         SQLiteHandler dbHandler=new SQLiteHandler(context);
         Log.d("SQLite Status","Lets Regular schedules Push to Local Db");
-        String tempT="";
+        String tempT="",tempA="";
         int Tindex=0,Asize=0;
         for (int q=0;q<TimingSizes.length;q++) {
-
-            Log.d("Timing Size", String.valueOf(q));
-
+            //Log.d("Timing Size", String.valueOf(q));
             if (q==TimingSizes.length-1){
-                Log.d("Inside","Inside");
+                //Log.d("Inside","Inside");
                 RegularSetDB=true;
                 if ((ExamSetDB)&&(RegularSetDB)){
                     Log.d("SQLITE Fetch","Lets fetch from SQLite");
                     TollerproMainActivity myActivity=new TollerproMainActivity();
 
-                    myActivity.Restart_Fetch(intent);
+                    myActivity.Restart_Fetch(intent,context);
 
                     pDialog.dismiss();
-
                    //finish();
                 }
             }
 
             if (TimingSizes[q]>0) {
                 for (int k = Tindex; k < (Tindex + TimingSizes[q]); k++) {
-                    tempT = tempT + "+" + TimingR.get(k).toString();
+                    String[] splitedTime=TimingR.get(k).split("\\.");
+                    tempT +=splitedTime[0]+"+";
+                    //tempT +=  TimingR.get(k).toString()+"+";//+"+"+tempT;
+                    String[] sepA=AudiosR.get(k).split("\\|");
+                    tempA +=sepA[1]+"+";//+"+"+tempA;
                     Log.d("Full Time Regular", tempT);
                     if (k >= TimingSizes[q] - 1) {
-
                         for (int m = 0; m < AssignSizes[q]; m++) {
-                            dbHandler.addRegularTimings(AssignationR.get(m).toString(), tempT, "audio");
+                            dbHandler.addRegularTimings(AssignationR.get(m).toString(), tempT, tempA);
                             if (m == AssignSizes[q] - 1) {
                                 tempT = "";
+                                tempA="";
                             }
                         }
                     }

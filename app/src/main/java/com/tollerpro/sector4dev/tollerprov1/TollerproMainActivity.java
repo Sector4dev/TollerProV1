@@ -19,6 +19,7 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
+import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -59,16 +60,20 @@ public class TollerproMainActivity extends Activity implements CompoundButton.On
     private RecyclerView.LayoutManager mLayoutManager;
     private ArrayList<String> mDataSet;
 
-
     public ProgressDialog pDialog;
+    public Context myContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tollerpro_main);
 
         txtName = (TextView) findViewById(R.id.textViewUsername);
         txtEmail = (TextView) findViewById(R.id.textViewPlace);
+
+        myContext=this.getApplicationContext();
 
         // Progress dialog
         pDialog = new ProgressDialog(this);
@@ -157,8 +162,9 @@ public class TollerproMainActivity extends Activity implements CompoundButton.On
         return;
     }
 
-    public void Restart_Fetch(Intent intent){
-        getApplicationContext().startActivity(intent);
+    public void Restart_Fetch(Intent intent,Context contextS){
+        contextS.startActivity(intent);
+        //startActivity(intent);
         finish();
     }
 
@@ -173,8 +179,6 @@ public class TollerproMainActivity extends Activity implements CompoundButton.On
     }
 
     public void FetchFromSqlite(Intent intent){
-        //finish();
-        //startActivity(mayireIntent);
         pDialog.setMessage("Fetching Data ...");
         showDialog();
 
@@ -190,36 +194,67 @@ public class TollerproMainActivity extends Activity implements CompoundButton.On
         db=new SQLiteHandler(this);
 
         //schdlset.GetSchedules(myemail,myToken,myId,this);
-        //Checking any exam Timings available
-        if(db.CheckexamScheduleAvail()){
-            //Log.d("Exam SQLite Status","Something there in Exam schedules");
-            ArrayList<String> Eschedules = db.getExamTimingDetails();
-            //Log.d("Exam Schedule", String.valueOf(Eschedules));
-            ArrayList<String> Edate=new ArrayList<>();
-            ArrayList<String> Etimes=new ArrayList<>();
-            ArrayList<String> Eaudio=new ArrayList<>();
-            for (int i=0;i<Eschedules.size();i++){
-                String schedule=Eschedules.get(i);
-                String[] SplitTemp=schedule.toString().trim().split("\\|");;
-                Edate.add(SplitTemp[0]);
-                Etimes.add(SplitTemp[1]);
-                Eaudio.add(SplitTemp[2]);
-                if (i>=Eschedules.size()-1){
-                    CheckExamDay(CurrDate,Edate,Etimes,Eaudio,CurrDay);
+        if ((!db.CheckexamScheduleAvail())&&(!db.CheckregularScheduleAvail())) {
+            Log.d("Schedules","Both not exist in db");
+            //Checking any exam Timings available
+            if (db.CheckexamScheduleAvail()) {
+                Log.d("Exam SQLite Status", "Something there in Exam schedules");
+                ArrayList<String> Eschedules = db.getExamTimingDetails();
+                //Log.d("Exam Schedule", String.valueOf(Eschedules));
+                ArrayList<String> Edate = new ArrayList<>();
+                ArrayList<String> Etimes = new ArrayList<>();
+                ArrayList<String> Eaudio = new ArrayList<>();
+                for (int i = 0; i < Eschedules.size(); i++) {
+                    String schedule = Eschedules.get(i);
+                    String[] SplitTemp = schedule.toString().trim().split("\\|");
+                    ;
+                    Edate.add(SplitTemp[0]);
+                    Etimes.add(SplitTemp[1]);
+                    Eaudio.add(SplitTemp[2]);
+                    if (i >= Eschedules.size() - 1) {
+                        CheckExamDay(CurrDate, Edate, Etimes, Eaudio, CurrDay);
+                    }
+                }
+            } else {
+                Log.d("Exam Schedule", "Exam schedules not available,Fetch from Server");
+                schdlset.GetExamSchedules(myemail, myToken, myId, pDialog, intent);
+            }
+
+            if (db.CheckregularScheduleAvail()) {
+                Log.d("Regular SQLite Status", "Regular timings available");
+                //ArrayList<String> Rschedules = db.getRegularTimingDetails();
+                //Log.d("Regular Schedule", String.valueOf(Rschedules));
+            } else {
+                Log.d("Regular Schedule", "Regular schedules not available,Fetch from Server");
+                schdlset.GetRegularSchedules(myemail, myToken, myId, pDialog, intent);
+            }
+        }else{
+            if (db.CheckexamScheduleAvail()) {
+                Log.d("Exam SQLite Status", "Something there in Exam schedules");
+                ArrayList<String> Eschedules = db.getExamTimingDetails();
+                //Log.d("Exam Schedule", String.valueOf(Eschedules));
+                ArrayList<String> Edate = new ArrayList<>();
+                ArrayList<String> Etimes = new ArrayList<>();
+                ArrayList<String> Eaudio = new ArrayList<>();
+                for (int i = 0; i < Eschedules.size(); i++) {
+                    String schedule = Eschedules.get(i);
+                    String[] SplitTemp = schedule.toString().trim().split("\\|",-1);
+                    ;
+                    Edate.add(SplitTemp[0]);
+                    Etimes.add(SplitTemp[1]);
+                    Eaudio.add(SplitTemp[2]);
+                    if (i >= Eschedules.size() - 1) {
+                        CheckExamDay(CurrDate, Edate, Etimes, Eaudio, CurrDay);
+                    }
+                }
+            }else {
+
+                if (db.CheckregularScheduleAvail()) {
+                    Log.d("Regular SQLite Status", "Regular timings available");
+                    //ArrayList<String> Rschedules = db.getRegularTimingDetails();
+                    CheckRegularday(CurrDay);
                 }
             }
-        }else {
-            Log.d("Exam Schedule","Exam schedules not available,Fetch from Server");
-            schdlset.GetExamSchedules(myemail,myToken,myId,pDialog,intent);
-        }
-
-        if (db.CheckregularScheduleAvail()){
-            Log.d("Regular SQLite Status","Regular timings available");
-            //ArrayList<String> Rschedules = db.getRegularTimingDetails();
-            //Log.d("Regular Schedule", String.valueOf(Rschedules));
-        }else{
-            Log.d("Regular Schedule","Regular schedules not available,Fetch from Server");
-            schdlset.GetRegularSchedules(myemail,myToken,myId,pDialog,intent);
         }
         //hideDialog();
     }
@@ -318,7 +353,7 @@ public class TollerproMainActivity extends Activity implements CompoundButton.On
     }
 
     //Check if internet is present or not
-    private boolean isConnectingToInternet() {
+    public boolean isConnectingToInternet() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager
                 .getActiveNetworkInfo();
