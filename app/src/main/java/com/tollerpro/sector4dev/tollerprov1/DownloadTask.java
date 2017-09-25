@@ -108,28 +108,30 @@ public class DownloadTask {
                     apkStorage.mkdir();
                     Log.e(TAG, "Directory Created.");
                 }*/
-                Log.d("Directory",""+context.getFilesDir());
+
                 outputFile = new File(context.getFilesDir() + File.separator + downloadFileName);//Create Output file in Main File
 
                 //Create New File if not present
                 if (!outputFile.exists()) {
+                    Log.d("Directory",""+context.getFilesDir());
                     outputFile.createNewFile();
                     Log.e(TAG, "File Created");
+
+
+                    FileOutputStream fos = new FileOutputStream(outputFile);//Get OutputStream for NewFile Location
+
+                    InputStream is = c.getInputStream();//Get InputStream for connection
+
+                    byte[] buffer = new byte[1024];//Set buffer type
+                    int len1 = 0;//init length
+                    while ((len1 = is.read(buffer)) != -1) {
+                        fos.write(buffer, 0, len1);//Write new file
+                    }
+
+                    //Close all connection after doing task
+                    fos.close();
+                    is.close();
                 }
-
-                FileOutputStream fos = new FileOutputStream(outputFile);//Get OutputStream for NewFile Location
-
-                InputStream is = c.getInputStream();//Get InputStream for connection
-
-                byte[] buffer = new byte[1024];//Set buffer type
-                int len1 = 0;//init length
-                while ((len1 = is.read(buffer)) != -1) {
-                    fos.write(buffer, 0, len1);//Write new file
-                }
-
-                //Close all connection after doing task
-                fos.close();
-                is.close();
 
             } catch (Exception e) {
 

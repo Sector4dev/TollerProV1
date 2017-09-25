@@ -25,9 +25,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 
 import app.AppConfig;
 import helper.SQLiteHandler;
@@ -59,8 +62,10 @@ public class SchedulesetsActivity {
         super.onCreate(savedInstanceState);
     }*/
     private Context context;
-    public SchedulesetsActivity(Context context){
+    private String myZone;
+    public SchedulesetsActivity(Context context,String Zone){
         this.context=context;
+        this.myZone=Zone;
     }
 
     public void GetExamSchedules(final String email, final String token, final String id,final ProgressDialog pDialog,final Intent intent) {
@@ -80,7 +85,7 @@ public class SchedulesetsActivity {
                         JSONArray timings = schdljarray.getJSONObject(0).getJSONObject("relationships").getJSONObject("examtimings").getJSONArray("data");
                         JSONArray assignations = schdljarray.getJSONObject(0).getJSONObject("relationships").getJSONObject("examassignations").getJSONArray("data");
                         if (timings.length() > 0) {
-                            Log.d("Exam Timings",schdljarray.toString());
+                            //Log.d("Exam Timings",schdljarray.toString());
                             for (int i = 0; i < timings.length(); i++) {
                                 TimingE.add("!");
                                 getExamTimings(email, token, timings.getJSONObject(i).getString("id").toString(), i, timings.length(), pDialog, intent);
@@ -271,16 +276,16 @@ public class SchedulesetsActivity {
                         //while (sc<schdljarray.length()){
                             JSONArray timings = schdljarray.getJSONObject(sc).getJSONObject("relationships").getJSONObject("timings").getJSONArray("data");
                             JSONArray assignations = schdljarray.getJSONObject(sc).getJSONObject("relationships").getJSONObject("assignations").getJSONArray("data");
-                            //Log.d("Schedules",timings.toString()+"|"+assignations.toString());
+                            Log.d("Schedules",timings.length()+"|"+assignations.length()+"|"+timings.toString());
                             TimingSizes[sc]=timings.length();
                             AssignSizes[sc]=assignations.length();
                             if (timings.length()>0) {
                                 for (int i = 0; i < timings.length(); i++) {
                                     TimingR.add("!");
                                     AudiosR.add("!");
-                                    //Log.d("Timings Length",""+TimingR.size());
+                                    Log.d("Timings Length",""+(i+TfullLength));
                                     getRegularTimings(email, token, timings.getJSONObject(i).getString("id").toString(), i+TfullLength, timings.length(),pDialog,intent);
-                                    if (i>=timings.length()-1){
+                                    if (i==timings.length()-1){
                                         TfullLength+=timings.length();
                                         //Log.d("Timing Length", String.valueOf(TfullLength));
                                     }
@@ -354,16 +359,17 @@ public class SchedulesetsActivity {
                         String tempTime = etimingjObj.getJSONObject("data").getJSONObject("attributes").getString("time").toString();
 
                         String tempAudio= etimingjObj.getJSONObject("data").getJSONObject("relationships").getJSONObject("audio").getJSONObject("data").getString("id").toString();
-                        Log.d("Timing",tempTime);
+                        //Log.d("Timing",tempTime+"|"+index);
 
                         getAudios(email, token, tempAudio, index, fullsize,pDialog,intent);
 
                         String[] separated = tempTime.split("T");
                         TimingR.set(index, separated[1]);
+                        Log.d("InsertedTime",TimingR.get(index)+"|"+index+"|"+id);
 
                         if (TimingR.size() >= fullsize) {
                             int temp_count=TimingR.size();
-                            Log.d("Timings size",temp_count+"");
+                            //Log.d("Timings size",temp_count+"");
                             for (int k = 0; k < TimingR.size(); k++) {
                                 if (TimingR.get(k)=="!"){
                                     Log.d("Completed","Not Completed Timing");
@@ -372,15 +378,14 @@ public class SchedulesetsActivity {
                                     Log.d("Completed","Yes Completed Timing");
                                     temp_count-=1;
                                     if (temp_count==0) {
+                                        Log.d("Whole Timing",TimingR.toString());
                                         Rtimingstatus=true;
                                         if ((Rtimingstatus)&&(Rassignstatus)&&(audiostatus)){
                                             Rtimingstatus=false;
                                             Rassignstatus=false;
                                             audiostatus=false;
                                             AddingtoDB_timing_assign_Regular(pDialog,intent);
-
                                         }
-
                                     }
                                 }
                             }
@@ -562,7 +567,15 @@ public class SchedulesetsActivity {
         String tempT="";
         for (int k=0;k<TimingE.size();k++){
             String[] splitedTime=TimingE.get(k).split("\\.");
-            tempT +=splitedTime[0]+"+";
+            //tempT +=splitedTime[0]+"+";
+            String temps="";
+            try {
+                //Log.d("TimeZone",myZone);
+                temps=TimeConverter(splitedTime[0],myZone);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            tempT +=temps+"+";
             //tempT +=TimingE.get(k).toString()+"+";
             //Log.d("Full Time Exam",tempT);
         }
@@ -586,16 +599,16 @@ public class SchedulesetsActivity {
 
     private void AddingtoDB_timing_assign_Regular(ProgressDialog pDialog,Intent intent){
         SQLiteHandler dbHandler=new SQLiteHandler(context);
-        Log.d("SQLite Status","Lets Regular schedules Push to Local Db");
+        //Log.d("SQLite Status","Lets Regular schedules Push to Local Db");
         String tempT="",tempA="";
-        int Tindex=0,Asize=0;
+        int Tindex=0,Aindex=0;
         for (int q=0;q<TimingSizes.length;q++) {
             //Log.d("Timing Size", String.valueOf(q));
             if (q==TimingSizes.length-1){
                 //Log.d("Inside","Inside");
                 RegularSetDB=true;
                 if ((ExamSetDB)&&(RegularSetDB)){
-                    Log.d("SQLITE Fetch","Lets fetch from SQLite");
+                    //Log.d("SQLITE Fetch","Lets fetch from SQLite");
                     TollerproMainActivity myActivity=new TollerproMainActivity();
 
                     myActivity.Restart_Fetch(intent,context);
@@ -606,30 +619,54 @@ public class SchedulesetsActivity {
             }
 
             if (TimingSizes[q]>0) {
-                for (int k = Tindex; k < (Tindex + TimingSizes[q]); k++) {
+                int tempTIndex=Tindex;
+                for (int k = tempTIndex; k < (tempTIndex + TimingSizes[q]); k++) {
                     String[] splitedTime=TimingR.get(k).split("\\.");
-                    tempT +=splitedTime[0]+"+";
+                    String temps="";
+                    try {
+                        //Log.d("TimeZone",myZone);
+                        temps=TimeConverter(splitedTime[0],myZone);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    tempT +=temps+"+";
                     //tempT +=  TimingR.get(k).toString()+"+";//+"+"+tempT;
                     String[] sepA=AudiosR.get(k).split("\\|");
                     tempA +=sepA[1]+"+";//+"+"+tempA;
-                    Log.d("Full Time Regular", tempT);
-                    if (k >= TimingSizes[q] - 1) {
-                        for (int m = 0; m < AssignSizes[q]; m++) {
+                    //Log.d("Full Time Regular", tempT+"|TimingSizes"+TimingSizes[q]+"|"+Tindex);
+                    if (k >= (tempTIndex + TimingSizes[q]) - 1) {
+                        int tempIndex=Aindex;
+                        for (int m = tempIndex; m < (AssignSizes[q]+tempIndex); m++) {
                             dbHandler.addRegularTimings(AssignationR.get(m).toString(), tempT, tempA);
                             if (m == AssignSizes[q] - 1) {
                                 tempT = "";
-                                tempA="";
+                                tempA = "";
+                                Aindex += AssignSizes[q];
+                                Log.d("AssignIndex", Aindex + "");
                             }
                         }
+                        Tindex += TimingSizes[q];
                     }
-                    if (k>=(Tindex + TimingSizes[q])){
-                        Tindex = (Tindex + TimingSizes[q]);
-                        Log.d("time string", "Emty temp" + Tindex);
-                    }
+                    /*if (k==(Tindex + TimingSizes[q])){
+                        Tindex = k;
+                        //Log.d("time string", "Emty temp" + Tindex);
+                    }*/
                 }
             }
         }
 
+    }
+
+    private String TimeConverter(String convTime,String timeZone) throws ParseException {
+        String dtc = convTime;
+        java.text.SimpleDateFormat readDate = new java.text.SimpleDateFormat("HH:mm:ss");
+        readDate.setTimeZone(TimeZone.getTimeZone("GMT")); // missing line
+        Date date = readDate.parse(dtc);
+        java.text.SimpleDateFormat writeDate = new java.text.SimpleDateFormat("HH:mm:ss");
+        writeDate.setTimeZone(TimeZone.getTimeZone(timeZone));
+        String s = writeDate.format(date);
+        Log.d("Locale",s);
+        return s;
     }
 
 
