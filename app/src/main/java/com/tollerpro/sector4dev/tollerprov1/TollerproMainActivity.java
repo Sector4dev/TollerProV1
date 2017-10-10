@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.icu.text.SimpleDateFormat;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -67,7 +68,9 @@ import helper.SQLiteHandler;
 import helper.SessionManager;
 
 import static com.tollerpro.sector4dev.tollerprov1.R.id.info;
-
+/**
+ * Created by Sector4 Dev on 8/10/2017.
+ */
 public class TollerproMainActivity extends AppCompatActivity {
     ToggleButton togglemutebttn,toggleamplibttn;
 
@@ -83,7 +86,7 @@ public class TollerproMainActivity extends AppCompatActivity {
     private ArrayList<String> pDataset;*/
 
     public String myToken;
-    public String myemail,myId,myZone;
+    public String myemail,myId,myZone,mySchool,myLocale;
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
@@ -131,14 +134,18 @@ public class TollerproMainActivity extends AppCompatActivity {
         HashMap<String, String> user = db.getUserDetails();
 
         //String name = user.get("username");
-        myemail = user.get("email");
+        myemail = user.get("username");
         myToken=user.get("token");
         myId=user.get("dbid");
         myZone=user.get("timezone");
+        mySchool=user.get("institution");
+        myLocale=user.get("location");
+
+        //Log.d("Authorization",myemail);
 
         // Displaying the user details on the screen
-        txtName.setText(myToken);
-        txtEmail.setText(myemail);
+        txtName.setText(mySchool);
+        txtEmail.setText(myLocale);
 
         //Toggling the Mute Button
         togglemutebttn=(ToggleButton)findViewById(R.id.buttonmute);
@@ -223,12 +230,13 @@ public class TollerproMainActivity extends AppCompatActivity {
 
         FetchFromSqlite(intent);
 
-        /*try {
-            TimeConverter("02:30:00","Asia/Kolkata");
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }*/
-
+//        Button btnTester = (Button) findViewById(R.id.TestBttn);
+//        btnTester.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                ShowProgressPopup();
+//            }
+//        });
 
     }
 
@@ -277,10 +285,10 @@ public class TollerproMainActivity extends AppCompatActivity {
 
     private void TimeConverter(String convTime,String timeZone) throws ParseException {
         String dtc = convTime;
-        java.text.SimpleDateFormat readDate = new java.text.SimpleDateFormat("HH:mm:ss");
+        java.text.SimpleDateFormat readDate = new java.text.SimpleDateFormat("HH:mm");
         readDate.setTimeZone(TimeZone.getTimeZone("GMT")); // missing line
         Date date = readDate.parse(dtc);
-        java.text.SimpleDateFormat writeDate = new java.text.SimpleDateFormat("HH:mm:ss");
+        java.text.SimpleDateFormat writeDate = new java.text.SimpleDateFormat("HH:mm");
         writeDate.setTimeZone(TimeZone.getTimeZone(timeZone));
         String s = writeDate.format(date);
         Log.d("Locale",s);
@@ -288,7 +296,15 @@ public class TollerproMainActivity extends AppCompatActivity {
 
     private void ProgressAnimations(ProgressBar curProgress,String fromTime,String toTime){
 
-        ObjectAnimator animationS = ObjectAnimator.ofInt (curProgress, "progress", 0, 100); // see this max value coming back here, we animale towards that value
+        ObjectAnimator animationS = ObjectAnimator.ofInt (curProgress, "progress", 0, 100); // see this max value coming back here, we animate towards that value
+        animationS.setDuration (GettingProgressDuration(fromTime,toTime)); //in milliseconds
+        animationS.setInterpolator (new LinearInterpolator());
+        animationS.start ();
+    }
+
+    private void ProgressAnimationsSmall(ProgressBar curProgress,String fromTime,String toTime,int min){
+
+        ObjectAnimator animationS = ObjectAnimator.ofInt (curProgress, "progress", min, 100); // see this max value coming back here, we animate towards that value
         animationS.setDuration (GettingProgressDuration(fromTime,toTime)); //in milliseconds
         animationS.setInterpolator (new LinearInterpolator());
         animationS.start ();
@@ -296,7 +312,7 @@ public class TollerproMainActivity extends AppCompatActivity {
 
     private long GettingProgressDuration(String dateStart,String dateStop){
         //Custom date format
-        java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("HH:mm:ss");
+        java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("HH:mm");
         Date d1 = null;
         Date d2 = null;
         try {
@@ -357,6 +373,7 @@ public class TollerproMainActivity extends AppCompatActivity {
                 ArrayList<String> Edate = new ArrayList<>();
                 ArrayList<String> Etimes = new ArrayList<>();
                 ArrayList<String> Eaudio = new ArrayList<>();
+                String Edescr = "";
                 for (int i = 0; i < Eschedules.size(); i++) {
                     String schedule = Eschedules.get(i);
                     String[] SplitTemp = schedule.toString().trim().split("\\|");
@@ -364,8 +381,9 @@ public class TollerproMainActivity extends AppCompatActivity {
                     Edate.add(SplitTemp[0]);
                     Etimes.add(SplitTemp[1]);
                     Eaudio.add(SplitTemp[2]);
+                    Edescr=SplitTemp[3];
                     if (i >= Eschedules.size() - 1) {
-                        CheckExamDay(CurrDate, Edate, Etimes, Eaudio, CurrDay);
+                        CheckExamDay(CurrDate, Edate, Etimes, Eaudio, CurrDay,Edescr);
                     }
                 }
             } else {
@@ -389,6 +407,7 @@ public class TollerproMainActivity extends AppCompatActivity {
                 ArrayList<String> Edate = new ArrayList<>();
                 ArrayList<String> Etimes = new ArrayList<>();
                 ArrayList<String> Eaudio = new ArrayList<>();
+                String Edescr = "";
                 for (int i = 0; i < Eschedules.size(); i++) {
                     String schedule = Eschedules.get(i);
                     String[] SplitTemp = schedule.toString().trim().split("\\|");
@@ -396,8 +415,9 @@ public class TollerproMainActivity extends AppCompatActivity {
                     Edate.add(SplitTemp[0]);
                     Etimes.add(SplitTemp[1]);
                     Eaudio.add(SplitTemp[2]);
+                    Edescr=SplitTemp[3];
                     if (i >= Eschedules.size() - 1) {
-                        CheckExamDay(CurrDate, Edate, Etimes, Eaudio, CurrDay);
+                        CheckExamDay(CurrDate, Edate, Etimes, Eaudio, CurrDay,Edescr);
                     }
                 }
             }else {
@@ -413,13 +433,17 @@ public class TollerproMainActivity extends AppCompatActivity {
     }
 
     private ArrayList<String> TodaysTimings,TodaysAudios;
-    private String CurrTime;
-    private void InitializeListViewTime(String ListData,String ListAudio){
+    private String CurrTime,DayProgressTime;
+
+    private void InitializeListViewTime(String ListData,String ListAudio,String DayStatus){
         mRecyclerView=(RecyclerView) findViewById(R.id.TimeRecyclerView);
+
+        TextView DescriptionTxt=(TextView) findViewById(R.id.daystatus);
+        DescriptionTxt.setText(DayStatus);
 
         String[] Timings=ListData.split("\\+");
         ArrayList<String> stringList = new ArrayList<String>(Arrays.asList(Timings));
-        //Log.d("Corrects times", String.valueOf(ListData));
+        //Converting Time format
 
         String[] Audios=ListAudio.split("\\+");
         ArrayList<String> audioList = new ArrayList<String>(Arrays.asList(Audios));
@@ -439,19 +463,26 @@ public class TollerproMainActivity extends AppCompatActivity {
         hideDialog();
 
         Date date = new Date();
-        CurrTime = new java.text.SimpleDateFormat("HH:mm:ss").format(date);
+        CurrTime = new java.text.SimpleDateFormat("HH:mm").format(date);
+        
         //Setting up the DAY progress bar
-        ProgressBar mProgressBarSmall=(ProgressBar) findViewById(R.id.progressBarDay);
-        ProgressAnimations(mProgressBarSmall,CurrTime,stringList.get((stringList.size()-1)));
-        //Log.d("ProgressTimes",stringList.get(0)+"|"+stringList.get((stringList.size()-1))+"||"+CurrTime);
+        final ProgressBar mProgressBarSmall=(ProgressBar) findViewById(R.id.progressBarDay);
 
-        /*//Setting up the PERIOD progress bar
-        ProgressBar mProgressBarBig=(ProgressBar) findViewById(R.id.progressBar2);
-        ProgressAnimations(mProgressBarBig,CurrTime,stringList.get((stringList.size()-1)));*/
+        long endTime=GettingMillisecs(stringList.get((stringList.size()-1)));
+        final double PercentCalc=((double)GettingMillisecs(CurrTime)/endTime)*100;
+        mProgressBarSmall.setMax(100);
+        mProgressBarSmall.setProgress((int) PercentCalc);
+        //mProgressBarSmall.setProgress(60);
+        ProgressAnimationsSmall(mProgressBarSmall,CurrTime,stringList.get((stringList.size()-1)),(int) PercentCalc);
+
+//        Log.d("Percentage",GettingMillisecs(CurrTime)+"|"+endTime+"|"+PercentCalc+"|"+Math.abs(PercentCalc));
+
         InitializePeriodProgress();
 
         //Setting Recyclerview initial scroll position.
         //mRecyclerView.scrollToPosition(1);
+//        View v = mRecyclerView.getLayoutManager().findViewByPosition(1);
+//        v.setBackgroundColor(Color.RED);
     }
 
     private void InitializePeriodProgress(){
@@ -459,7 +490,7 @@ public class TollerproMainActivity extends AppCompatActivity {
 
         //Checking for current Period
         for (int l=0;l<TodaysTimings.size();l++){
-            CurrTime = new java.text.SimpleDateFormat("HH:mm:ss").format(date);
+            CurrTime = new java.text.SimpleDateFormat("HH:mm").format(date);
             if (GettingMillisecs(CurrTime)<GettingMillisecs(TodaysTimings.get(l))){
 
                 //This is going to be our next time to alert
@@ -489,7 +520,7 @@ public class TollerproMainActivity extends AppCompatActivity {
                             public void run() {
                                 if(!Alarmed) {
                                     Date date = new Date();
-                                    CurrTime = new java.text.SimpleDateFormat("HH:mm:ss").format(date);
+                                    CurrTime = new java.text.SimpleDateFormat("HH:mm").format(date);
                                     long t1 = GettingMillisecs(CurrTime);
                                     long t2 = GettingMillisecs(AlertTime);
                                     if (t1 == t2) {
@@ -519,7 +550,7 @@ public class TollerproMainActivity extends AppCompatActivity {
 
     private long GettingMillisecs(String time){
         //Custom date format
-        java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("HH:mm:ss");
+        java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("HH:mm");
         Date d1 = null;
         try {
             d1 = format.parse(time);
@@ -530,11 +561,11 @@ public class TollerproMainActivity extends AppCompatActivity {
         return Math.abs(duration);
     }
 
-    private void CheckExamDay(String curDate,ArrayList<String> dbdate,ArrayList<String> dbtime,ArrayList<String> dbaudio,String curDay){
+    private void CheckExamDay(String curDate,ArrayList<String> dbdate,ArrayList<String> dbtime,ArrayList<String> dbaudio,String curDay,String DayStatus){
         for (int p=0;p<dbdate.size();p++){
-            if (dbdate.get(p)==curDate){
+            if (dbdate.get(p).equals(curDate)){
                 Log.d("Today",dbdate.get(p)+"- Yes");
-                InitializeListViewTime(dbtime.get(p),dbaudio.get(p));
+                InitializeListViewTime(dbtime.get(p),dbaudio.get(p),DayStatus);
             }else{
                 Log.d("Today",dbdate.get(p)+"- No");
                 if (p==dbdate.size()-1) {
@@ -551,18 +582,20 @@ public class TollerproMainActivity extends AppCompatActivity {
             ArrayList<String> Rdate=new ArrayList<>();
             ArrayList<String> Rtimes=new ArrayList<>();
             ArrayList<String> Raudio=new ArrayList<>();
+            String Edescr="";
             for (int i=0;i<Rschedules.size();i++){
                 String schedule=Rschedules.get(i);
                 String[] SplitTemp=schedule.toString().trim().split("\\|");
                 Rdate.add(SplitTemp[0]);
                 Rtimes.add(SplitTemp[1]);
                 Raudio.add(SplitTemp[2]);
+                Edescr=SplitTemp[3];
                 Log.d("Regular Exists",schedule);
                 if (i>=Rschedules.size()-1){
                     for (int p=0;p<Rdate.size();p++){
                         if (Rdate.get(p).equals(curDay)){
                             Log.d("Today",Rdate.get(p)+"="+curDay+"-YES"+"|Audios="+Raudio.get(p));
-                            InitializeListViewTime(Rtimes.get(p),Raudio.get(p));
+                            InitializeListViewTime(Rtimes.get(p),Raudio.get(p),Edescr);
                             p=Rdate.size();
 
                         }else{
@@ -654,20 +687,8 @@ public class TollerproMainActivity extends AppCompatActivity {
     }
 
     private void ShowProgressPopup(){
-        //Toast.makeText(getApplicationContext(),"Showing Popup!",Toast.LENGTH_LONG).show();
-        //popB=(Button)findViewById(R.id.buttonPopup);
-        relativeLayout=(RelativeLayout)findViewById(R.id.TollerMainLayout);
-
-        DisplayMetrics popDM=new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(popDM);
-        final int width=popDM.widthPixels;
-        final int height=popDM.heightPixels;
-
-        layoutInflater=(LayoutInflater)getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-        ViewGroup container=(ViewGroup)layoutInflater.inflate(R.layout.popup_layout,null);
-
-        popWindow=new PopupWindow(container,(int)(width),(int)(height),false);
-        popWindow.showAtLocation(relativeLayout, Gravity.NO_GRAVITY,0,0);
+        Intent popintent=new Intent(TollerproMainActivity.this,popActivity.class);
+        startActivity(popintent);
     }
     private void HideProgressPopup(){
         if (popWindow!=null)

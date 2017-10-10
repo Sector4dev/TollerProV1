@@ -1,8 +1,9 @@
 package activity;
 
 /**
- * Created by Sajir Mohammed on 30-Jul-17.
+ * Created by Sector4 Dev on 30-Jul-17.
  */
+
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -14,6 +15,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
 import com.android.volley.Request.Method;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -81,32 +84,20 @@ public class LoginActivity extends Activity {
         btnLogin.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View view) {
-                String email = inputEmail.getText().toString().trim();
-                String password = inputPassword.getText().toString().trim();
+            String email = inputEmail.getText().toString().trim();
+            String password = inputPassword.getText().toString().trim();
 
-                // Check for empty data in the form
-                if (!email.isEmpty() && !password.isEmpty()) {
-                    // login user
-                    checkLogin(email, password);
-                } else {
-                    // Prompt user to enter credentials
-                    Toast.makeText(getApplicationContext(),"Please enter the credentials!", Toast.LENGTH_LONG).show();
-                }
+            // Check for empty data in the form
+            if (!email.isEmpty() && !password.isEmpty()) {
+                // login user
+                checkLogin(email, password);
+            } else {
+                // Prompt user to enter credentials
+                Toast.makeText(getApplicationContext(),"Please enter the credentials!", Toast.LENGTH_LONG).show();
+            }
             }
 
         });
-
-        // Link to Register Screen
-       /* btnLinkToRegister.setOnClickListener(new View.OnClickListener() {
-
-            public void onClick(View view) {
-                Intent i = new Intent(getApplicationContext(),
-                        RegisterActivity.class);
-                startActivity(i);
-                finish();
-            }
-        });*/
-
     }
 
     public void onBackPressed() {
@@ -133,37 +124,32 @@ public class LoginActivity extends Activity {
 
                 try {
                     JSONObject jObj = new JSONObject(response);
-                    //boolean error = jObj.getBoolean("error");
+//                    JSONObject jObj2=jObj.getJSONObject("data");
+//
+//                    String myID = jObj2.getString("id");
+//                    JSONObject jObj3=jObj2.getJSONObject("attributes");
 
-                    // Check for error node in json
-                    /*if (!error) {*/
-                        // user successfully logged in
-                        // Create login session
-                        session.setLogin(true);
+                    session.setLogin(true);
 
-                        // Now store the user in SQLite
-                        String role = jObj.getString("role");
-                        String myID = jObj.getString("user_id");
+                    // Now store the user in SQLite
+                    String role = jObj.getString("role");
+                    String myID = jObj.getString("user_id");
 
-                        //JSONObject user = jObj.getJSONObject("user");
-                        String token = jObj.getString("token");
-                        String email = jObj.getString("email");
-                        String timezone = jObj.getString("timezone");
+                    String token = jObj.getString("token");
+                    String email = jObj.getString("email");
+                    String timezone = jObj.getString("timezone");
+                    String username= jObj.getString("username");
+                    //String schoolname ="n";
+                    //String location ="n";
 
-                        // Inserting row in users table
-                        db.addUser(token, email, role, myID, timezone);
-
-                        // Launch main activity
-                        Intent intent = new Intent(LoginActivity.this,
-                                TollerproMainActivity.class);
-                        startActivity(intent);
-                        finish();
-                   /* } else {
-                        // Error in login. Get the error message
-                        String errorMsg = jObj.getString("error_msg");
-                        Toast.makeText(getApplicationContext(),
-                                errorMsg, Toast.LENGTH_LONG).show();
-                    }*/
+                    getRegularAssignations(myID,role,token,email,timezone,username);
+//                    // Inserting row in users table
+//                    db.addUser(token, email, role, myID, timezone,username,schoolname,location);
+//
+//                    // Launch main activity
+//                    Intent intent = new Intent(LoginActivity.this, TollerproMainActivity.class);
+//                    startActivity(intent);
+//                    finish();
                 } catch (JSONException e) {
                     // JSON error
                     e.printStackTrace();
@@ -180,21 +166,16 @@ public class LoginActivity extends Activity {
                 hideDialog();
             }
         }) {
-
             @Override
             protected Map<String, String> getParams() {
                 // Posting parameters to login url
                 Map<String, String> params = new HashMap<String, String>();
-                params.put("user[email]", email);
+                params.put("user[username]", email);
                 params.put("user[password]", password);
 
                 return params;
             }
-
         };
-
-        // Adding request to request queue
-        //AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
         RequestQueue requestQueue = Volley.newRequestQueue(this);
         requestQueue.add(strReq);
     }
@@ -207,5 +188,61 @@ public class LoginActivity extends Activity {
     private void hideDialog() {
         if (pDialog.isShowing())
             pDialog.dismiss();
+    }
+
+    public void getRegularAssignations(final String id,final String role,final String token,final String email,final String timezone,final String username){
+        RequestQueue requestQueues = Volley.newRequestQueue(this);
+        //final String[] thisTime = {""};
+
+        StringRequest FulldataRequest=new StringRequest(Request.Method.GET, AppConfig.URL_FULLDATA+id, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+
+                try {
+                    if (response!=null) {
+                        JSONObject jObj = new JSONObject(response);
+                        JSONObject jObj2=jObj.getJSONObject("data");
+                        JSONObject jObj3=jObj2.getJSONObject("attributes");
+
+                        String schoolname =jObj3.getString("nameofinstitution");
+                        String location =jObj3.getString("location");
+
+                        // Inserting row in users table
+                        db.addUser(token, email, role, id, timezone,username,schoolname,location);
+
+                        // Launch main activity
+                        Intent intent = new Intent(LoginActivity.this, TollerproMainActivity.class);
+                        startActivity(intent);
+                        finish();
+
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        },new Response.ErrorListener()
+        {
+            @Override
+            public void onErrorResponse (VolleyError volleyError)
+            {
+                volleyError.printStackTrace();
+                Toast.makeText(getApplicationContext(), "Login Error: " +volleyError.getMessage(), Toast.LENGTH_LONG).show();
+                hideDialog();
+            }
+        })
+        {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String>  headers = new HashMap<String, String>();
+
+                headers.put("Authorization","Token token="+token+","+"username="+username);
+
+                return headers;
+            }
+        };
+        requestQueues.add(FulldataRequest);
+
     }
 }

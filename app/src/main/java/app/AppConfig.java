@@ -1,7 +1,7 @@
 package app;
 
 /**
- * Created by Sajir Mohammed on 30-Jul-17.
+ * Created by Sector4 Dev on 30-Jul-17.
  */
 
 public class AppConfig {
@@ -18,9 +18,9 @@ public class AppConfig {
 
     public static String URL_EXAMSCHEDULESETS = "https://tollerapp-back.herokuapp.com/examschedulesets?filter%5Buser%5D=";
     public static String URL_EXAMASSIGNATION = "https://tollerapp-back.herokuapp.com/examassignations/";
-    public static String URL_EXAMTIMINGS = "https://tollerapp-back.herokuapp.com/examassignations/";
+    public static String URL_EXAMTIMINGS = "https://tollerapp-back.herokuapp.com/examtimings/";
 
     public static String URL_AUDIO="https://tollerapp-back.herokuapp.com/audios/";
-
+    public static String URL_FULLDATA="http://tollerapp-back.herokuapp.com/users/";
 
 }

@@ -49,13 +49,15 @@ public class SchedulesetsActivity {
     private ArrayList<String> TimingE=new ArrayList<String>();
     private ArrayList<String> AssignationE=new ArrayList<String>();
     private ArrayList<String> AudiosE=new ArrayList<String>();
+    private ArrayList<String> DescriptionE=new ArrayList<String>();
 
     private ArrayList<String> TimingR=new ArrayList<String>();
     private ArrayList<String> AssignationR=new ArrayList<String>();
+    private ArrayList<String> DescriptionR=new ArrayList<String>();
     private ArrayList<String> AudiosR=new ArrayList<String>();
-    private int[] TimingSizes,AssignSizes;
+    private int[] TimingSizes,AssignSizes,TimingSizesE,AssignSizesE;
 
-    private boolean timingstatus=false,assignstatus=false,Rtimingstatus=false,Rassignstatus=false,audiostatus=false;
+    private boolean timingstatus=false,assignstatus=false,Rtimingstatus=false,Rassignstatus=false,audiostatus=false,audiostatusE=false;
 
     /*public void onCreate(Bundle savedInstanceState)
     {
@@ -77,31 +79,65 @@ public class SchedulesetsActivity {
             public void onResponse(String response)
             {
                 try {
-                    if (response!=null) {
-                        JSONObject schdljObj = new JSONObject(response);
-                        JSONArray schdljarray = schdljObj.getJSONArray("data");
-                        /*Log.d("Exam Schedules",schdljarray.toString());*/
+                    JSONObject schdljObj = new JSONObject(response);
+                    JSONArray schdljarray= schdljObj.getJSONArray("data");
+                    Log.d("Exam Schedules",schdljarray.toString());
+                    TimingSizesE=new int[schdljarray.length()];
+                    AssignSizesE=new int[schdljarray.length()];
+                    if (schdljarray.length()>0) {
+                        int TfullLength=0,AfullLength=0;
+                        for (int sc=0;sc<schdljarray.length();sc++) {
+                            //int sc=0;
+                            //while (sc<schdljarray.length()){
+                            String Descript=schdljarray.getJSONObject(sc).getJSONObject("attributes").getString("description");
+                            DescriptionE.add(Descript);
 
-                        JSONArray timings = schdljarray.getJSONObject(0).getJSONObject("relationships").getJSONObject("examtimings").getJSONArray("data");
-                        JSONArray assignations = schdljarray.getJSONObject(0).getJSONObject("relationships").getJSONObject("examassignations").getJSONArray("data");
-                        if (timings.length() > 0) {
-                            //Log.d("Exam Timings",schdljarray.toString());
-                            for (int i = 0; i < timings.length(); i++) {
-                                TimingE.add("!");
-                                getExamTimings(email, token, timings.getJSONObject(i).getString("id").toString(), i, timings.length(), pDialog, intent);
+                            JSONArray timings = schdljarray.getJSONObject(sc).getJSONObject("relationships").getJSONObject("examtimings").getJSONArray("data");
+                            JSONArray assignations = schdljarray.getJSONObject(sc).getJSONObject("relationships").getJSONObject("examassignations").getJSONArray("data");
+                            Log.d("Schedules",timings.length()+"|"+assignations.length()+"|"+timings.toString()+"|"+DescriptionE.toString());
 
+                            TimingSizesE[sc]=timings.length();
+                            AssignSizesE[sc]=assignations.length();
+                            if (timings.length()>0) {
+                                for (int i = 0; i < timings.length(); i++) {
+                                    TimingE.add("!");
+                                    AudiosE.add("!");
+
+                                    Log.d("Timings Length",""+(i+TfullLength));
+                                    getExamTimings(email, token, timings.getJSONObject(i).getString("id").toString(), i+TfullLength, timings.length(),pDialog,intent);
+                                    if (i==timings.length()-1){
+                                        TfullLength+=timings.length();
+                                        //Log.d("Timing Length", String.valueOf(TfullLength));
+                                    }
+                                }
+                                //sc++;
+                            }else{
+                                Log.d("Timings Array","Empty");
+                                ExamSetDB=true;
+                                //sc=schdljarray.length();
                             }
-                            for (int j = 0; j < assignations.length(); j++) {
-                                AssignationE.add("!");
-                                getExamAssignations(email, token, assignations.getJSONObject(j).getString("id").toString(), j, assignations.length(), pDialog, intent);
+
+                            if (assignations.length()>0) {
+                                for (int j = 0; j < assignations.length(); j++) {
+                                    AssignationE.add("!");
+                                    //Log.d("Assignations Length",""+TimingR.size());
+                                    getExamAssignations(email, token, assignations.getJSONObject(j).getString("id").toString(), j+AfullLength, assignations.length(),pDialog,intent);
+                                    if (j>=assignations.length()-1){
+                                        AfullLength+=assignations.length();
+                                        //Log.d("Assignation Length", String.valueOf(AfullLength));
+                                    }
+                                }
+                                //sc++;
+                            }else{
+                                Log.d("Assignation Array","Empty");
+                                //sc=schdljarray.length();
                             }
-                        } else {
-                            Log.d("Exam Schedules", "No Exams schedules!");
-                            ExamSetDB = true;
+
+
                         }
-                    }else {
-                        Log.d("Exam Schedules", "No Exams schedules!");
-                        ExamSetDB = true;
+                    }else{
+                        Log.d("Schedulesets","No schedulesets");
+                        //RegularSetDB=true;
                     }
 
                 } catch (JSONException e) {
@@ -113,6 +149,7 @@ public class SchedulesetsActivity {
             @Override
             public void onErrorResponse(VolleyError volleyError)
             {
+                volleyError.printStackTrace();
             }
         })
         {
@@ -120,7 +157,7 @@ public class SchedulesetsActivity {
             public Map<String, String> getHeaders() throws AuthFailureError {
                 HashMap<String, String>  headers = new HashMap<String, String>();
 
-                headers.put("Authorization","Token token="+token+","+"email="+email);
+                headers.put("Authorization","Token token="+token+","+"username="+email);
 
                 return headers;
             }
@@ -140,6 +177,10 @@ public class SchedulesetsActivity {
                     if (response!=null) {
                         JSONObject etimingjObj = new JSONObject(response);
                         String tempTime = etimingjObj.getJSONObject("data").getJSONObject("attributes").getString("time").toString();
+
+                        String tempAudio= etimingjObj.getJSONObject("data").getJSONObject("relationships").getJSONObject("audio").getJSONObject("data").getString("id").toString();
+                        getAudiosExam(email, token, tempAudio, index, fullsize,pDialog,intent);
+
                         String[] separated = tempTime.split("T");
                         TimingE.set(index, separated[1]);
 
@@ -147,18 +188,18 @@ public class SchedulesetsActivity {
                             int temp_count=TimingE.size();
                             for (int k = 0; k < TimingE.size(); k++) {
                                 if (TimingE.get(k)=="!"){
-                                    Log.d("Completed","Not Completed Timing");
+                                    Log.d("Completed","Not Completed Exam Timing");
                                 }else
                                 {
                                     temp_count-=1;
                                     if (temp_count==0) {
                                         timingstatus=true;
-                                        if ((timingstatus)&&(assignstatus)){
+                                        if ((timingstatus)&&(assignstatus)&&(audiostatusE)){
                                             timingstatus=false;
                                             assignstatus=false;
+                                            audiostatusE=false;
                                             AddingtoDB_timing_assign_Exam(pDialog,intent);
                                         }
-
                                     }
                                 }
                             }
@@ -175,6 +216,7 @@ public class SchedulesetsActivity {
                 @Override
                 public void onErrorResponse (VolleyError volleyError)
                 {
+                    volleyError.printStackTrace();
                 }
             })
         {
@@ -182,12 +224,88 @@ public class SchedulesetsActivity {
             public Map<String, String> getHeaders() throws AuthFailureError {
                 HashMap<String, String>  headers = new HashMap<String, String>();
 
-                headers.put("Authorization","Token token="+token+","+"email="+email);
+                headers.put("Authorization","Token token="+token+","+"username="+email);
 
                 return headers;
             }
         };
         requestQueues.add(EtimingRequest);
+
+    }
+    public void getAudiosExam(final String email, final String token, final String id,final int index, final int fullsize,final ProgressDialog pDialog,final Intent intent){
+        RequestQueue requestQueues = Volley.newRequestQueue(context);
+        //final String[] thisTime = {""};
+
+        StringRequest audioRequest=new StringRequest(Request.Method.GET, AppConfig.URL_AUDIO+id, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+
+                try {
+                    if (response!=null) {
+                        JSONObject etimingjObj = new JSONObject(response);
+                        String tempAudio = etimingjObj.getJSONObject("data").getJSONObject("attributes").getString("fullurl").toString();
+                        String tempName=etimingjObj.getJSONObject("data").getJSONObject("attributes").getString("filename").toString();
+                        //String[] separated = tempAudio.split("T");
+                        AudiosE.set(index, tempAudio+"|"+tempName);
+                        //Log.d("Audio file",AudiosR.get(index));
+
+                        if (AudiosE.size() >= fullsize) {
+                            int temp_count=AudiosE.size();
+                            Log.d("Audios size",temp_count+"");
+                            for (int k = 0; k < AudiosE.size(); k++) {
+                                if (AudiosE.get(k)=="!"){
+                                    Log.d("Completed","Not Completed ExamAudios");
+                                }else
+                                {
+                                    TollerproMainActivity tempMain=new TollerproMainActivity();
+                                    String[] seperatedA=AudiosE.get(k).split("\\|");
+                                    new DownloadTask(context, seperatedA[0],seperatedA[1]);
+                                    /*if (tempMain.isConnectingToInternet())
+                                        new DownloadTask(context, seperatedA[0],seperatedA[1]);
+                                    else
+                                        Log.d("Connection","Connection failed!");*/
+
+                                    Log.d("Completed","Yes Completed ExamAudios");
+                                    temp_count-=1;
+                                    if (temp_count==0) {
+                                        audiostatusE=true;
+                                        if ((timingstatus)&&(assignstatus)&&(audiostatusE)){
+                                            timingstatus=false;
+                                            assignstatus=false;
+                                            audiostatusE=false;
+                                            AddingtoDB_timing_assign_Exam(pDialog,intent);
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        },new Response.ErrorListener()
+        {
+            @Override
+            public void onErrorResponse (VolleyError volleyError)
+            {
+                volleyError.printStackTrace();
+            }
+        })
+        {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String>  headers = new HashMap<String, String>();
+
+                headers.put("Authorization","Token token="+token+","+"username="+email);
+
+                return headers;
+            }
+        };
+        requestQueues.add(audioRequest);
 
     }
 
@@ -211,16 +329,17 @@ public class SchedulesetsActivity {
                             int temp_count=AssignationE.size();
                             for (int k = 0; k < AssignationE.size(); k++) {
                                 if (AssignationE.get(k)=="!"){
-                                    Log.d("Completed","Not Completed assignation");
+                                    Log.d("Completed","Not Completed Examassignation");
                                 }else
                                 {
                                     temp_count-=1;
                                     if (temp_count==0) {
                                         assignstatus=true;
                                         //Log.d("Completed", "Completed assignation");
-                                        if ((timingstatus)&&(assignstatus)){
+                                        if ((timingstatus)&&(assignstatus)&&(audiostatusE)){
                                             timingstatus=false;
                                             assignstatus=false;
+                                            audiostatusE=false;
                                             AddingtoDB_timing_assign_Exam(pDialog,intent);
                                         }
                                     }
@@ -239,6 +358,7 @@ public class SchedulesetsActivity {
             @Override
             public void onErrorResponse (VolleyError volleyError)
             {
+                volleyError.printStackTrace();
             }
         })
         {
@@ -246,7 +366,7 @@ public class SchedulesetsActivity {
             public Map<String, String> getHeaders() throws AuthFailureError {
                 HashMap<String, String>  headers = new HashMap<String, String>();
 
-                headers.put("Authorization","Token token="+token+","+"email="+email);
+                headers.put("Authorization","Token token="+token+","+"username="+email);
 
                 return headers;
             }
@@ -274,9 +394,13 @@ public class SchedulesetsActivity {
                         for (int sc=0;sc<schdljarray.length();sc++) {
                         //int sc=0;
                         //while (sc<schdljarray.length()){
+                            String Descript=schdljarray.getJSONObject(sc).getJSONObject("attributes").getString("description");
+                            DescriptionR.add(Descript);
+
                             JSONArray timings = schdljarray.getJSONObject(sc).getJSONObject("relationships").getJSONObject("timings").getJSONArray("data");
                             JSONArray assignations = schdljarray.getJSONObject(sc).getJSONObject("relationships").getJSONObject("assignations").getJSONArray("data");
-                            Log.d("Schedules",timings.length()+"|"+assignations.length()+"|"+timings.toString());
+                            Log.d("Schedules",timings.length()+"|"+assignations.length()+"|"+timings.toString()+"|"+DescriptionR.toString());
+
                             TimingSizes[sc]=timings.length();
                             AssignSizes[sc]=assignations.length();
                             if (timings.length()>0) {
@@ -329,6 +453,7 @@ public class SchedulesetsActivity {
             @Override
             public void onErrorResponse(VolleyError volleyError)
             {
+                volleyError.printStackTrace();
             }
         })
         {
@@ -336,7 +461,7 @@ public class SchedulesetsActivity {
             public Map<String, String> getHeaders() throws AuthFailureError {
                 HashMap<String, String>  headers = new HashMap<String, String>();
 
-                headers.put("Authorization","Token token="+token+","+"email="+email);
+                headers.put("Authorization","Token token="+token+","+"username="+email);
 
                 return headers;
             }
@@ -402,6 +527,7 @@ public class SchedulesetsActivity {
             @Override
             public void onErrorResponse (VolleyError volleyError)
             {
+                volleyError.printStackTrace();
             }
         })
         {
@@ -409,7 +535,7 @@ public class SchedulesetsActivity {
             public Map<String, String> getHeaders() throws AuthFailureError {
                 HashMap<String, String>  headers = new HashMap<String, String>();
 
-                headers.put("Authorization","Token token="+token+","+"email="+email);
+                headers.put("Authorization","Token token="+token+","+"username="+email);
 
                 return headers;
             }
@@ -478,6 +604,7 @@ public class SchedulesetsActivity {
             @Override
             public void onErrorResponse (VolleyError volleyError)
             {
+                volleyError.printStackTrace();
             }
         })
         {
@@ -485,7 +612,7 @@ public class SchedulesetsActivity {
             public Map<String, String> getHeaders() throws AuthFailureError {
                 HashMap<String, String>  headers = new HashMap<String, String>();
 
-                headers.put("Authorization","Token token="+token+","+"email="+email);
+                headers.put("Authorization","Token token="+token+","+"username="+email);
 
                 return headers;
             }
@@ -544,6 +671,7 @@ public class SchedulesetsActivity {
             @Override
             public void onErrorResponse (VolleyError volleyError)
             {
+                volleyError.printStackTrace();
             }
         })
         {
@@ -551,7 +679,7 @@ public class SchedulesetsActivity {
             public Map<String, String> getHeaders() throws AuthFailureError {
                 HashMap<String, String>  headers = new HashMap<String, String>();
 
-                headers.put("Authorization","Token token="+token+","+"email="+email);
+                headers.put("Authorization","Token token="+token+","+"username="+email);
 
                 return headers;
             }
@@ -563,38 +691,58 @@ public class SchedulesetsActivity {
     public boolean ExamSetDB=false,RegularSetDB=false;
     private void AddingtoDB_timing_assign_Exam(ProgressDialog pDialog,Intent intent){
         SQLiteHandler dbHandler=new SQLiteHandler(context);
-        Log.d("SQLite Status","Lets Exam schedules Push to Local Db");
-        String tempT="";
-        for (int k=0;k<TimingE.size();k++){
-            String[] splitedTime=TimingE.get(k).split("\\.");
-            //tempT +=splitedTime[0]+"+";
-            String temps="";
-            try {
-                //Log.d("TimeZone",myZone);
-                temps=TimeConverter(splitedTime[0],myZone);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-            tempT +=temps+"+";
-            //tempT +=TimingE.get(k).toString()+"+";
-            //Log.d("Full Time Exam",tempT);
-        }
-        for (int m=0;m<AssignationE.size();m++) {
-            //Log.d("Timings",tempT);
-            dbHandler.addExamTimings(AssignationE.get(m).toString(),tempT,"audio");
-            if (m==AssignationE.size()-1){
+        //Log.d("SQLite Status","Lets Regular schedules Push to Local Db");
+        String tempT="",tempA="";
+        int Tindex=0,Aindex=0;
+        for (int q=0;q<TimingSizesE.length;q++) {
+            //Log.d("Timing Size", String.valueOf(q));
+            if (q==TimingSizesE.length-1){
+                //Log.d("Inside","Inside");
                 ExamSetDB=true;
                 if ((ExamSetDB)&&(RegularSetDB)){
+                    //Log.d("SQLITE Fetch","Lets fetch from SQLite");
                     TollerproMainActivity myActivity=new TollerproMainActivity();
 
                     myActivity.Restart_Fetch(intent,context);
 
                     pDialog.dismiss();
-
                     //finish();
                 }
             }
+
+            if (TimingSizesE[q]>0) {
+                int tempTIndex=Tindex;
+                for (int k = tempTIndex; k < (tempTIndex + TimingSizesE[q]); k++) {
+                    String[] splitedTime=TimingE.get(k).split("\\.");
+                    String temps="";
+                    try {
+                        //Log.d("TimeZone",myZone);
+                        temps=TimeConverter(splitedTime[0],myZone);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    tempT +=temps+"+";
+                    //tempT +=  TimingR.get(k).toString()+"+";//+"+"+tempT;
+                    String[] sepA=AudiosE.get(k).split("\\|");
+                    tempA +=sepA[1]+"+";//+"+"+tempA;
+                    //Log.d("Full Time Regular", tempT+"|TimingSizes"+TimingSizes[q]+"|"+Tindex);
+                    if (k >= (tempTIndex + TimingSizesE[q]) - 1) {
+                        int tempIndex=Aindex;
+                        for (int m = tempIndex; m < (AssignSizesE[q]+tempIndex); m++) {
+                            dbHandler.addExamTimings(AssignationE.get(m).toString(), tempT, tempA,DescriptionE.get(q));
+                            if (m == AssignSizesE[q] - 1) {
+                                tempT = "";
+                                tempA = "";
+                                Aindex += AssignSizesE[q];
+                                Log.d("AssignIndex", Aindex + "");
+                            }
+                        }
+                        Tindex += TimingSizesE[q];
+                    }
+                }
+            }
         }
+
     }
 
     private void AddingtoDB_timing_assign_Regular(ProgressDialog pDialog,Intent intent){
@@ -637,7 +785,7 @@ public class SchedulesetsActivity {
                     if (k >= (tempTIndex + TimingSizes[q]) - 1) {
                         int tempIndex=Aindex;
                         for (int m = tempIndex; m < (AssignSizes[q]+tempIndex); m++) {
-                            dbHandler.addRegularTimings(AssignationR.get(m).toString(), tempT, tempA);
+                            dbHandler.addRegularTimings(AssignationR.get(m).toString(), tempT, tempA,DescriptionR.get(q));
                             if (m == AssignSizes[q] - 1) {
                                 tempT = "";
                                 tempA = "";
@@ -659,10 +807,10 @@ public class SchedulesetsActivity {
 
     private String TimeConverter(String convTime,String timeZone) throws ParseException {
         String dtc = convTime;
-        java.text.SimpleDateFormat readDate = new java.text.SimpleDateFormat("HH:mm:ss");
+        java.text.SimpleDateFormat readDate = new java.text.SimpleDateFormat("HH:mm");
         readDate.setTimeZone(TimeZone.getTimeZone("GMT")); // missing line
         Date date = readDate.parse(dtc);
-        java.text.SimpleDateFormat writeDate = new java.text.SimpleDateFormat("HH:mm:ss");
+        java.text.SimpleDateFormat writeDate = new java.text.SimpleDateFormat("HH:mm");
         writeDate.setTimeZone(TimeZone.getTimeZone(timeZone));
         String s = writeDate.format(date);
         Log.d("Locale",s);

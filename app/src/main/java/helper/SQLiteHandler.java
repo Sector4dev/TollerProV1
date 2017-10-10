@@ -1,7 +1,7 @@
 package helper;
 
 /**
- * Created by Sajir Mohammed on 30-Jul-17.
+ * Created by Sector4 Dev on 30-Jul-17.
  */
 import android.content.ContentValues;
 import android.content.Context;
@@ -38,12 +38,16 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     private static final String KEY_ROLE = "role";
     private static final String KEY_TIMEZONE = "timezone";
     private static final String KEY_DBID = "dbid";
+    private static final String KEY_USER = "username";
+    private static final String KEY_SCHOOL = "institution";
+    private static final String KEY_LOCATION = "location";
 
     // Regular/Exam Timings Table Columns names
     private static final String KEY_TID = "id";
     private static final String KEY_DAY = "day";
     private static final String KEY_TIME = "timing";
     private static final String KEY_AUDIO = "audio";
+    private static final String KEY_DESC = "description";
 
     public SQLiteHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -56,21 +60,22 @@ public class SQLiteHandler extends SQLiteOpenHelper {
                 + KEY_ID + " INTEGER PRIMARY KEY,"
                 + KEY_DBID + " TEXT," + KEY_TOKEN + " TEXT,"
                 + KEY_EMAIL + " TEXT UNIQUE," + KEY_ROLE + " TEXT,"
-                + KEY_TIMEZONE + " TEXT" + ")";
+                + KEY_TIMEZONE + " TEXT,"+ KEY_USER + " TEXT,"
+                + KEY_SCHOOL + " TEXT," + KEY_LOCATION + " TEXT" + ")";
         db.execSQL(CREATE_LOGIN_TABLE);
         Log.d(TAG, "User Database tables created");
 
         //Regular Timing Table Creation
         String CREATE_REGULAR_TIMING_TABLE = "CREATE TABLE " + TABLE_REGULAR_TIMING + "("
                 + KEY_TID + " INTEGER PRIMARY KEY,"
-                + KEY_DAY + " TEXT," + KEY_TIME + " TEXT," + KEY_AUDIO + " TEXT" + ")";
+                + KEY_DAY + " TEXT," + KEY_TIME + " TEXT," + KEY_AUDIO + " TEXT," + KEY_DESC + " TEXT" + ")";
         db.execSQL(CREATE_REGULAR_TIMING_TABLE);
         Log.d(TAG, "Regular Timing Database tables created");
 
         //Exam Timing Table Creation
         String CREATE_EXAM_TIMING_TABLE = "CREATE TABLE " + TABLE_EXAM_TIMING + "("
                 + KEY_TID + " INTEGER PRIMARY KEY,"
-                + KEY_DAY + " TEXT," + KEY_TIME+ " TEXT," + KEY_AUDIO + " TEXT" + ")";
+                + KEY_DAY + " TEXT," + KEY_TIME+ " TEXT," + KEY_AUDIO + " TEXT," + KEY_DESC + " TEXT" + ")";
         db.execSQL(CREATE_EXAM_TIMING_TABLE);
         Log.d(TAG, "Exam Timing Database tables created");
     }
@@ -138,7 +143,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     }
 
     //Storing user details in database
-    public void addUser(String token, String email, String role,String dbids, String timezone) {
+    public void addUser(String token, String email, String role,String dbids, String timezone,String username,String school,String location) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -147,6 +152,9 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         values.put(KEY_EMAIL, email); // Email
         values.put(KEY_ROLE, role); // Role
         values.put(KEY_TIMEZONE, timezone); // TimeZone
+        values.put(KEY_USER, username); // Username
+        values.put(KEY_SCHOOL, school); // School
+        values.put(KEY_LOCATION, location); // Location
 
         // Inserting Row
         long id = db.insert(TABLE_USER, null, values);
@@ -155,13 +163,14 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         Log.d(TAG, "New user inserted into sqlite: " + id);
     }
     //Storing regular timings details in database
-    public void addRegularTimings(String day, String timings, String audio) {
+    public void addRegularTimings(String day, String timings, String audio,String description) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
         values.put(KEY_DAY, day);
         values.put(KEY_TIME, timings);
         values.put(KEY_AUDIO, audio);
+        values.put(KEY_DESC, description);
         // Inserting Row
         long id = db.insert(TABLE_REGULAR_TIMING, null, values);
         db.close(); // Closing database connection
@@ -169,13 +178,14 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         Log.d(TAG, "New regular timing inserted into sqlite: " + id);
     }
     //Storing exam timings details in database
-    public void addExamTimings(String day, String timings, String audio) {
+    public void addExamTimings(String day, String timings, String audio,String description) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
         values.put(KEY_DAY, day);
         values.put(KEY_TIME, timings);
         values.put(KEY_AUDIO, audio);
+        values.put(KEY_DESC, description);
         // Inserting Row
         long id = db.insert(TABLE_EXAM_TIMING, null, values);
         db.close(); // Closing database connection
@@ -198,6 +208,9 @@ public class SQLiteHandler extends SQLiteOpenHelper {
             user.put("email", cursor.getString(3));
             user.put("role", cursor.getString(4));
             user.put("timezone", cursor.getString(5));
+            user.put("username", cursor.getString(6));
+            user.put("institution", cursor.getString(7));
+            user.put("location", cursor.getString(8));
         }
         cursor.close();
         db.close();
@@ -218,7 +231,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         cursor.moveToFirst();
         if (cursor.getCount()>0){
             do {
-                regularTimings.add(cursor.getString(1)+"|"+cursor.getString(2)+"|"+cursor.getString(3));
+                regularTimings.add(cursor.getString(1)+"|"+cursor.getString(2)+"|"+cursor.getString(3)+"|"+cursor.getString(4));
 
             } while (cursor.moveToNext());
         }
@@ -241,7 +254,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         cursor.moveToFirst();
         if (cursor.getCount()>0){
             do {
-                examTimings.add(cursor.getString(1)+"|"+cursor.getString(2)+"|"+cursor.getString(3));
+                examTimings.add(cursor.getString(1)+"|"+cursor.getString(2)+"|"+cursor.getString(3)+"|"+cursor.getString(4));
 
             } while (cursor.moveToNext());
         }

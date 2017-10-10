@@ -32,8 +32,9 @@
             android:name=".TollerproMainActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop" />
-        <activity android:name="activity.popActivity"
-            android:launchMode="singleTop"/>
+        <activity android:name=".popActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="landscape"/>
         <service
             android:name="com.tollerpro.sector4dev.tollerprov1.UsbService"
             android:enabled="true">

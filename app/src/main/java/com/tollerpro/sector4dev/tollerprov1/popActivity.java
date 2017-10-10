@@ -1,4 +1,4 @@
-package activity;
+package com.tollerpro.sector4dev.tollerprov1;
 
 import android.animation.ObjectAnimator;
 import android.app.Activity;
@@ -25,49 +25,41 @@ import java.util.Date;
  * Created by Sector4 Dev on 9/25/2017.
  */
 
-public class popActivity extends AppCompatActivity {
+public class popActivity extends Activity {
 
     private long timerAlert=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.popup_layout);
 
-        DisplayMetrics popDM=new DisplayMetrics();
+        /*DisplayMetrics popDM=new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(popDM);
         int width=popDM.widthPixels;
         int height=popDM.heightPixels;
 
-        getWindow().setLayout((int)(width),(int)(height));
-
-
-
-        /*ProgressBar mProgressBarBig=(ProgressBar) findViewById(R.id.progressBarAlert);
-        ProgressAnimations(mProgressBarBig,timerAlert,30000);*/
-
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
+        getWindow().setLayout((int)(width),(int)(height));*/
 
         final TextView tdate = (TextView) findViewById(R.id.alerttimer);
 
         CountDownTimer counter=new CountDownTimer(30000,1000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                //timerAlert=millisUntilFinished;
-                tdate.setText(millisUntilFinished+"");
+                timerAlert=millisUntilFinished;
+                tdate.setText(millisUntilFinished/1000+"");
             }
 
             @Override
             public void onFinish() {
-
+                finish();
             }
-        }.start();
+        };
+        counter.start();
+
+        ProgressBar mProgressBarBig=(ProgressBar) findViewById(R.id.progressBarAlert);
+        ProgressAnimations(mProgressBarBig,timerAlert,30000);
     }
 
     private void ProgressAnimations(ProgressBar curProgress, long fromTime, long toTime){

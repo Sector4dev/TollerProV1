@@ -1,7 +1,7 @@
 package app;
 
 /**
- * Created by Sajir Mohammed on 30-Jul-17.
+ * Created by Sector4 Dev on 30-Jul-17.
  */
 
 import android.app.Application;
